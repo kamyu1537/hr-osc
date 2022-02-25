@@ -47,14 +47,14 @@ func main() {
 
 	go WsReceiver()
 	go OscParameterReceiver(func(msg *osc.Message) {
-		UpdateConnection(connected)
+		SetConnectedValue(connected)
 		fmt.Println("avatar change detected")
 	})
 
 	for {
 		select {
 		case <-done:
-			UpdateConnection(false)
+			SetConnectedValue(false)
 			return
 		case <-interrupt:
 			log.Println("interrupt")

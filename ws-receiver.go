@@ -27,9 +27,7 @@ func WsReceiver() {
 		heartRatePercent := float64(msg.Data.HeartRate) / float64(config.MaxHeartRate)
 		_ = oscClient.Send(osc.NewMessage(config.OscPercentPath, float32(heartRatePercent)))
 		timeout.Reset(time.Second * time.Duration(config.Timeout))
-		if connected == false {
-			UpdateConnection(true)
-		}
+		SetConnectedValue(true)
 	}
 }
 
@@ -38,13 +36,13 @@ func WsTimeoutChecker() {
 	for {
 		<-timeout.C
 		if connected == true {
-			UpdateConnection(false)
+			SetConnectedValue(false)
 			fmt.Println("websocket disconnected")
 		}
 	}
 }
 
-func UpdateConnection(conn bool) {
+func SetConnectedValue(conn bool) {
 	_ = oscClient.Send(osc.NewMessage(config.OscConnectedPath, conn))
 	connected = conn
 }
