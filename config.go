@@ -17,7 +17,7 @@ func ConfigLoader() {
 	config.OscPercentPath = "/avatar/parameters/hr_percent"
 	config.WidgetId = ""
 	config.MaxHeartRate = 200
-	config.Timeout = 10
+	config.Timeout = 5
 
 	if _, err := os.Stat("./config.json"); errors.Is(err, os.ErrNotExist) {
 		if file, err := os.Create("./config.json"); err != nil {
