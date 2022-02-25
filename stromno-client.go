@@ -22,7 +22,7 @@ func GetWebSocketUrl(widgetId string) string {
 		panic(err)
 	}
 
-	resp, err := http.Post("https://pulsoid.net/v1/api/public/rpc", "application/json", bytes.NewBuffer(reqBytes))
+	resp, err := http.Post("https://api.stromno.com/v1/api/public/rpc", "application/json", bytes.NewBuffer(reqBytes))
 	if err != nil {
 		panic(err)
 	}

@@ -1,11 +1,13 @@
 package main
 
 type Config struct {
-	OscHost      string `json:"osc_host"`
-	OscPort      uint16 `json:"osc_port"`
-	OscPath      string `json:"osc_path"`
-	MaxHeartRate int    `json:"max_heart_rate"`
-	WidgetId     string `json:"widget_id"`
+	OscHost          string `json:"osc_host"`
+	OscPort          uint16 `json:"osc_port"`
+	OscConnectedPath string `json:"osc_path_connected"`
+	OscPercentPath   string `json:"osc_path_percent"`
+	MaxHeartRate     int    `json:"max_heart_rate"`
+	WidgetId         string `json:"widget_id"`
+	Timeout          int    `json:"timeout"`
 }
 
 type RequestData struct {
