@@ -6,6 +6,12 @@ import (
 	"os"
 )
 
+var config *Config
+
+func init() {
+	ConfigLoader()
+}
+
 func ConfigLoader() {
 	connected = false
 	config = new(Config)

@@ -3,21 +3,45 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/hypebeast/go-osc/osc"
 	"time"
 )
 
-func WsReceiver() {
+var connected bool
+
+func SetConnectedValue(conn bool) {
+	_ = oscc.Send(osc.NewMessage(config.OscConnectedPath, conn))
+	connected = conn
+}
+
+func ConnectWebSocketServer(address string) {
+	timeout := time.NewTimer(0)
+	go receiveTimeout(timeout)
+
+	fmt.Println("connecting to stromno websocket server")
+	ws, _, err := websocket.DefaultDialer.Dial(address, nil)
+	if err != nil {
+		ExitProgram("stromno websocket server connection failed..")
+		return
+	}
+	fmt.Println("stromno websocket server connected!")
+	defer func() { _ = ws.Close() }()
+
+	go receiveMessage(ws, timeout)
+}
+
+func receiveMessage(ws *websocket.Conn, timer *time.Timer) {
 	defer close(done)
 	for {
-		_, message, err := wsConn.ReadMessage()
+		_, message, err := ws.ReadMessage()
 		if err != nil {
 			fmt.Println("message receive error!")
 			return
 		}
 
-		msg := new(WebSocketReceiveMessage)
-		err = json.Unmarshal(message, msg)
+		var msg WebSocketReceiveMessage
+		err = json.Unmarshal(message, &msg)
 		if err != nil {
 			fmt.Println("json read failed!")
 			return
@@ -25,24 +49,18 @@ func WsReceiver() {
 
 		fmt.Printf("Your HeartRate: %d\n", msg.Data.HeartRate)
 		heartRatePercent := float64(msg.Data.HeartRate) / float64(config.MaxHeartRate)
-		_ = oscClient.Send(osc.NewMessage(config.OscPercentPath, float32(heartRatePercent)))
-		timeout.Reset(time.Second * time.Duration(config.Timeout))
+		_ = oscc.Send(osc.NewMessage(config.OscPercentPath, float32(heartRatePercent)))
+		timer.Reset(time.Second * time.Duration(config.Timeout))
 		SetConnectedValue(true)
 	}
 }
 
-func WsTimeoutChecker() {
-	defer close(done)
+func receiveTimeout(timer *time.Timer) {
 	for {
-		<-timeout.C
+		<-timer.C
 		if connected == true {
 			SetConnectedValue(false)
 			fmt.Println("websocket disconnected")
 		}
 	}
-}
-
-func SetConnectedValue(conn bool) {
-	_ = oscClient.Send(osc.NewMessage(config.OscConnectedPath, conn))
-	connected = conn
 }
