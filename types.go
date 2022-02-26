@@ -1,10 +1,8 @@
 package main
 
 type Config struct {
-	OscHost string `json:"osc_client_host"`
-	OscPort uint16 `json:"osc_client_port"`
-	//OscServerHost    string `json:"osc_server_host"`
-	//OscServerPort    uint16 `json:"osc_server_port"`
+	OscHost          string `json:"osc_client_host"`
+	OscPort          uint16 `json:"osc_client_port"`
 	OscConnectedPath string `json:"osc_path_connected"`
 	OscPercentPath   string `json:"osc_path_percent"`
 	MaxHeartRate     int    `json:"max_heart_rate"`

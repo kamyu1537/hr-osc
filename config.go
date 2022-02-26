@@ -11,8 +11,6 @@ func ConfigLoader() {
 	config = new(Config)
 	config.OscHost = "127.0.0.1"
 	config.OscPort = 9000
-	//config.OscServerHost = "127.0.0.127"
-	//config.OscServerPort = 9001
 	config.OscConnectedPath = "/avatar/parameters/hr_connected"
 	config.OscPercentPath = "/avatar/parameters/hr_percent"
 	config.WidgetId = ""
@@ -23,16 +21,13 @@ func ConfigLoader() {
 		if file, err := os.Create("./config.json"); err != nil {
 			panic(err)
 		} else {
-			defer file.Close()
+			defer func() { _ = file.Close() }()
+
 			enc := json.NewEncoder(file)
 			enc.SetIndent("", "  ")
-			if err = enc.Encode(config); err != nil {
-				panic(err)
-			}
+			_ = enc.Encode(config)
 		}
-	} else if b, err := os.ReadFile("./config.json"); err != nil {
-		panic(err)
-	} else if err = json.Unmarshal(b, config); err != nil {
-		panic(err)
+	} else if b, err := os.ReadFile("./config.json"); err == nil {
+		_ = json.Unmarshal(b, config)
 	}
 }
