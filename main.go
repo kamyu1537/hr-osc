@@ -46,10 +46,10 @@ func main() {
 	defer wsConn.Close()
 
 	go WsReceiver()
-	go OscParameterReceiver(func(msg *osc.Message) {
-		SetConnectedValue(connected)
-		fmt.Println("avatar change detected")
-	})
+	//go OscParameterReceiver(func(msg *osc.Message) {
+	//	SetConnectedValue(connected)
+	//	fmt.Println("avatar change detected")
+	//})
 
 	for {
 		select {

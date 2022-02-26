@@ -11,8 +11,8 @@ func ConfigLoader() {
 	config = new(Config)
 	config.OscHost = "127.0.0.1"
 	config.OscPort = 9000
-	config.OscServerHost = "127.0.0.1"
-	config.OscServerPort = 9001
+	//config.OscServerHost = "127.0.0.127"
+	//config.OscServerPort = 9001
 	config.OscConnectedPath = "/avatar/parameters/hr_connected"
 	config.OscPercentPath = "/avatar/parameters/hr_percent"
 	config.WidgetId = ""
