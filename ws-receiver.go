@@ -36,15 +36,17 @@ func receiveMessage(ws *websocket.Conn, timer *time.Timer) {
 	for {
 		_, message, err := ws.ReadMessage()
 		if err != nil {
+			fmt.Println(err.Error())
 			fmt.Println("message receive error!")
-			return
+			continue
 		}
 
 		var msg WebSocketReceiveMessage
 		err = json.Unmarshal(message, &msg)
 		if err != nil {
+			fmt.Println(err.Error())
 			fmt.Println("json read failed!")
-			return
+			continue
 		}
 
 		fmt.Printf("Your HeartRate: %d\n", msg.Data.HeartRate)
