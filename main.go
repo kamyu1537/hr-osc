@@ -29,7 +29,7 @@ func main() {
 		return
 	}
 
-	ConnectWebSocketServer(url)
+	go ConnectWebSocketServer(url)
 
 	<-interrupt
 	SetConnectedValue(false)

@@ -28,7 +28,7 @@ func ConnectWebSocketServer(address string) {
 	fmt.Println("stromno websocket server connected!")
 	defer func() { _ = ws.Close() }()
 
-	go receiveMessage(ws, timeout)
+	receiveMessage(ws, timeout)
 }
 
 func receiveMessage(ws *websocket.Conn, timer *time.Timer) {
