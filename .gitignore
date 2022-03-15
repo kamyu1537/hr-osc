@@ -1,19 +1,14 @@
-### Go template
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Wails bin directory
+build/bin
+# Wails Windows NSIS support files
+build/windows/installer/wails_tools.nsh
+build/windows/installer/tmp/
 
-# Test binary, built with `go test -c`
-*.test
+# IDEs
+.idea
+.vscode
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+# The black hole that is...
+node_modules
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-.idea/
 config.json

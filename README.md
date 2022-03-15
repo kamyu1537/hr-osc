@@ -1,8 +1,18 @@
 # HR-OSC
-get heartrate from stromno and send it to osc
+Stromno HeartRate Client for VRChat OSC
+
+## Requirement
+* wails
+```shell
+go install github.com/wailsapp/wails/v2/cmd/wails@latest
+```
 
 ## Development
 ```shell
-go mod download
-go run hr-osc
+wails dev
+```
+
+## Build
+```shell
+wails build
 ```

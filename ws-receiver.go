@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/hypebeast/go-osc/osc"
+	"log"
 	"time"
 )
 
 var connected bool
+var heartRate int64
 
 func SetConnectedValue(conn bool) {
 	_ = oscc.Send(osc.NewMessage(config.OscConnectedPath, conn))
@@ -19,41 +20,46 @@ func ConnectWebSocketServer(address string) {
 	timeout := time.NewTimer(0)
 	go receiveTimeout(timeout)
 
-	fmt.Println("connecting to stromno websocket server")
+	log.Println("connecting to stromno websocket server")
 	ws, _, err := websocket.DefaultDialer.Dial(address, nil)
 	if err != nil {
-		ExitProgram("stromno websocket server connection failed..")
+		oscError = "websocket server connection failed"
 		return
 	}
-	fmt.Println("stromno websocket server connected!")
+	log.Println("stromno websocket server connected!")
 	defer func() { _ = ws.Close() }()
 
 	receiveMessage(ws, timeout)
 }
 
 func receiveMessage(ws *websocket.Conn, timer *time.Timer) {
-	defer close(done)
 	for {
-		_, message, err := ws.ReadMessage()
-		if err != nil {
-			fmt.Println(err.Error())
-			fmt.Println("message receive error!")
-			continue
-		}
+		select {
+		case <-done:
+			log.Println("websocket client closed")
+			break
+		default:
+			_, message, err := ws.ReadMessage()
+			if err != nil {
+				log.Println(err.Error())
+				oscError = "message receive error!"
+				continue
+			}
 
-		var msg WebSocketReceiveMessage
-		err = json.Unmarshal(message, &msg)
-		if err != nil {
-			fmt.Println(err.Error())
-			fmt.Println("json read failed!")
-			continue
-		}
+			var msg WebSocketReceiveMessage
+			err = json.Unmarshal(message, &msg)
+			if err != nil {
+				log.Println(err.Error())
+				oscError = "json read failed!"
+				continue
+			}
 
-		fmt.Printf("Your HeartRate: %d\n", msg.Data.HeartRate)
-		heartRatePercent := float64(msg.Data.HeartRate) / float64(config.MaxHeartRate)
-		_ = oscc.Send(osc.NewMessage(config.OscPercentPath, float32(heartRatePercent)))
-		timer.Reset(time.Second * time.Duration(config.Timeout))
-		SetConnectedValue(true)
+			heartRate = msg.Data.HeartRate
+			heartRatePercent := float64(msg.Data.HeartRate) / float64(config.MaxHeartRate)
+			_ = oscc.Send(osc.NewMessage(config.OscPercentPath, float32(heartRatePercent)))
+			timer.Reset(time.Second * time.Duration(config.Timeout))
+			SetConnectedValue(true)
+		}
 	}
 }
 
@@ -62,7 +68,7 @@ func receiveTimeout(timer *time.Timer) {
 		<-timer.C
 		if connected == true {
 			SetConnectedValue(false)
-			fmt.Println("websocket disconnected")
+			log.Println("websocket disconnected")
 		}
 	}
 }
