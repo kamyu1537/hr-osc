@@ -20,11 +20,12 @@ type WebSocketReceiveData struct {
 }
 
 func ConnectWebSocketServer(address string) {
+	log.Println("connecting to stromno websocket server")
+	ws, _, err := websocket.DefaultDialer.Dial(address, nil)
+
 	timeout := time.NewTimer(0)
 	go receiveTimeout(timeout)
 
-	log.Println("connecting to stromno websocket server")
-	ws, _, err := websocket.DefaultDialer.Dial(address, nil)
 	if err != nil {
 		log.Println(err.Error())
 		setDisplayError("websocket server connection failed")
@@ -54,6 +55,7 @@ func receiveMessage(ws *websocket.Conn, timer *time.Timer) {
 			log.Println("channel closed")
 			break
 		default:
+			_ = ws.SetReadDeadline(time.Time{})
 			_, message, err := ws.ReadMessage()
 			if err != nil {
 				log.Println(err.Error())
