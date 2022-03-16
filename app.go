@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"hr-osc/client"
+	"runtime"
 )
 
 // App application struct
@@ -33,6 +34,10 @@ func (b *App) shutdown(ctx context.Context) {
 	client.Close()
 }
 
+func (b *App) beforeClose(ctx context.Context) bool {
+	return false
+}
+
 func (b *App) GetLoading() bool {
 	return client.Loading
 }
@@ -45,10 +50,38 @@ func (b *App) GetHeartRate() int64 {
 	return client.HeartRate
 }
 
+func (b *App) GetHeartRatePercent() float64 {
+	return client.HeartRatePercent
+}
+
 func (b *App) GetDisplayError() string {
 	return client.DisplayError
 }
 
+func (b *App) GetConfig() *client.Config {
+	return client.GetConfig()
+}
+
+func (b *App) SaveConfig() {
+	client.GetConfig().Save()
+}
+
 func (b *App) SetWidgetId(widgetId string) {
 	client.GetConfig().SetWidgetId(widgetId)
+}
+
+func (b *App) SetMaxHeartRate(maxHeartRate int) {
+	client.GetConfig().SetMaxHeartRate(maxHeartRate)
+}
+
+func (b *App) SetConnectedParameterName(parameterName string) {
+	client.GetConfig().SetConnectedParameterName(parameterName)
+}
+
+func (b *App) SetPercentParameterName(parameterName string) {
+	client.GetConfig().SetPercentParameterName(parameterName)
+}
+
+func (b *App) GetOS() string {
+	return runtime.GOOS
 }

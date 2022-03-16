@@ -1,8 +1,11 @@
 <script>
-  import Main          from './components/Main.svelte';
-  import Error         from './components/Error.svelte';
+  import TopMenu from './components/TopMenu.svelte';
+  import Main from './components/Main.svelte';
+  import Error from './components/Error.svelte';
   import WidgetIdInput from './components/WidgetIdInput.svelte';
+  import Settings from './components/Settings.svelte';
 
+  let settings = false;
   let loading = true;
   let error = '';
 
@@ -17,29 +20,50 @@
     console.info('error', value);
     error = value;
   });
+
+  function updateWindowSize() {
+    if (settings) {
+      window.runtime.WindowSetMaxSize(300, 390);
+      window.runtime.WindowSetSize(300, 390);
+    } else {
+      window.runtime.WindowSetMaxSize(300, 255);
+      window.runtime.WindowSetSize(300, 255);
+    }
+  }
+
+  function toggleSettings(value) {
+    settings = value ?? !settings;
+    updateWindowSize();
+  }
+
+  updateWindowSize();
 </script>
 
 <main>
-  <h1>hr-osc</h1>
+  <TopMenu on:showSettings={toggleSettings} />
 
-  <div data-wails-no-drag>
-    {#if !loading}
-      <Main error={error} />
-    {:else}
-      {#if error === 'widget_id'}
-        <WidgetIdInput />
-      {:else if error !== ''}
-        <Error>{error}</Error>
+  <div data-wails-no-drag style="flex-grow: 1; padding-bottom: 32px">
+    {#if !settings}
+      {#if !loading}
+        <Main error={error} />
       {:else}
-        <p>Loading...</p>
+        {#if error === 'widget_id'}
+          <WidgetIdInput />
+        {:else if error !== ''}
+          <Error>{error}</Error>
+        {:else}
+          <p>Loading...</p>
+        {/if}
       {/if}
+    {:else}
+      <Settings on:onChangeConfig={() => toggleSettings(false)} />
     {/if}
   </div>
 </main>
 
 <style>
   main {
-    height: 100%;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
   }
 </style>

@@ -9,13 +9,14 @@ import (
 )
 
 var (
-	appContext     *context.Context
-	oscClient      *osc.Client
-	wsCloseChannel chan struct{}
-	DisplayError   = ""
-	Loading        = true
-	IsConnected    = false
-	HeartRate      = int64(0)
+	appContext       *context.Context
+	oscClient        *osc.Client
+	wsCloseChannel   chan struct{}
+	DisplayError     = ""
+	Loading          = true
+	IsConnected      = false
+	HeartRate        = int64(0)
+	HeartRatePercent = float64(0)
 )
 
 func Startup(ctx *context.Context) {
@@ -88,4 +89,10 @@ func setHeartRate(heartRate int64) {
 	HeartRate = heartRate
 	runtime.EventsEmit(*appContext, "onChangeHeartRate", HeartRate)
 	log.Printf("HeartRate: %d\n", HeartRate)
+}
+
+func setHeartRatePercent(heartRatePercent float64) {
+	HeartRatePercent = heartRatePercent
+	runtime.EventsEmit(*appContext, "onChangeHeartRatePercent", heartRatePercent)
+	log.Printf("HeartRate Percent: %.2f\n", heartRatePercent)
 }

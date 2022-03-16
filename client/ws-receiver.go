@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math"
 	"time"
@@ -27,8 +28,7 @@ func ConnectWebSocketServer(address string) {
 	go receiveTimeout(timeout)
 
 	if err != nil {
-		log.Println(err.Error())
-		setDisplayError("websocket server connection failed")
+		setDisplayError(fmt.Sprintf("ws connection: %s", err.Error()))
 		return
 	}
 	log.Println("stromno websocket server connected!")
@@ -58,16 +58,14 @@ func receiveMessage(ws *websocket.Conn, timer *time.Timer) {
 			_ = ws.SetReadDeadline(time.Time{})
 			_, message, err := ws.ReadMessage()
 			if err != nil {
-				log.Println(err.Error())
-				setDisplayError("message receive error!")
+				setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
 				continue
 			}
 
 			var msg WebSocketReceiveMessage
 			err = json.Unmarshal(message, &msg)
 			if err != nil {
-				log.Println(err.Error())
-				setDisplayError("message json read failed")
+				setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
 				continue
 			}
 
@@ -77,7 +75,7 @@ func receiveMessage(ws *websocket.Conn, timer *time.Timer) {
 			heartRatePercent = math.Floor(heartRatePercent)
 			heartRatePercent *= 0.01
 
-			log.Printf("HeartRate Percent %.2f\n", heartRatePercent)
+			setHeartRatePercent(heartRatePercent)
 			_ = oscClient.Send(osc.NewMessage(config.OscPercentPath, float32(heartRatePercent)))
 			timer.Reset(time.Second * time.Duration(config.Timeout))
 			setConnected(true)

@@ -28,15 +28,15 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:             "hr-osc",
-		Width:             320,
-		Height:            240,
-		MinWidth:          320,
-		MinHeight:         240,
-		MaxWidth:          320,
-		MaxHeight:         240,
+		Width:             300,
+		Height:            255,
+		MinWidth:          300,
+		MinHeight:         255,
+		MaxWidth:          300,
+		MaxHeight:         255,
 		DisableResize:     true,
 		Fullscreen:        false,
-		Frameless:         false,
+		Frameless:         true,
 		StartHidden:       false,
 		HideWindowOnClose: false,
 		RGBA:              &options.RGBA{R: 33, G: 37, B: 43, A: 255},
@@ -45,14 +45,15 @@ func main() {
 		OnStartup:         app.startup,
 		OnDomReady:        app.domReady,
 		OnShutdown:        app.shutdown,
+		OnBeforeClose:     app.beforeClose,
 		Bind: []interface{}{
 			app,
 		},
 		// Windows platform specific options
 		Windows: &windows.Options{
-			WebviewIsTransparent: false,
-			WindowIsTranslucent:  false,
-			DisableWindowIcon:    false,
+			WebviewIsTransparent: true,
+			WindowIsTranslucent:  true,
+			DisableWindowIcon:    true,
 		},
 		Mac: &mac.Options{
 			TitleBar:             mac.TitleBarHiddenInset(),

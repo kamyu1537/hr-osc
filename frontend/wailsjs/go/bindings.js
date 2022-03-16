@@ -5,6 +5,13 @@ const go = {
   "main": {
     "App": {
       /**
+       * GetConfig
+       * @returns {Promise<Config>}  - Go Type: *client.Config
+       */
+      "GetConfig": () => {
+        return window.go.main.App.GetConfig();
+      },
+      /**
        * GetConnected
        * @returns {Promise<boolean>}  - Go Type: bool
        */
@@ -26,11 +33,56 @@ const go = {
         return window.go.main.App.GetHeartRate();
       },
       /**
+       * GetHeartRatePercent
+       * @returns {Promise<number>}  - Go Type: float64
+       */
+      "GetHeartRatePercent": () => {
+        return window.go.main.App.GetHeartRatePercent();
+      },
+      /**
        * GetLoading
        * @returns {Promise<boolean>}  - Go Type: bool
        */
       "GetLoading": () => {
         return window.go.main.App.GetLoading();
+      },
+      /**
+       * GetOS
+       * @returns {Promise<string>}  - Go Type: string
+       */
+      "GetOS": () => {
+        return window.go.main.App.GetOS();
+      },
+      /**
+       * SaveConfig
+       * @returns {Promise<void>} 
+       */
+      "SaveConfig": () => {
+        return window.go.main.App.SaveConfig();
+      },
+      /**
+       * SetConnectedParameterName
+       * @param {string} arg1 - Go Type: string
+       * @returns {Promise<void>} 
+       */
+      "SetConnectedParameterName": (arg1) => {
+        return window.go.main.App.SetConnectedParameterName(arg1);
+      },
+      /**
+       * SetMaxHeartRate
+       * @param {number} arg1 - Go Type: int
+       * @returns {Promise<void>} 
+       */
+      "SetMaxHeartRate": (arg1) => {
+        return window.go.main.App.SetMaxHeartRate(arg1);
+      },
+      /**
+       * SetPercentParameterName
+       * @param {string} arg1 - Go Type: string
+       * @returns {Promise<void>} 
+       */
+      "SetPercentParameterName": (arg1) => {
+        return window.go.main.App.SetPercentParameterName(arg1);
       },
       /**
        * SetWidgetId

@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"errors"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"os"
 	"sync"
 )
@@ -50,6 +51,8 @@ func GetConfig() *Config {
 }
 
 func (c *Config) Apply() {
+	runtime.EventsEmit(*appContext, "onChangeConfig", c)
+
 	// OSC Client SetIP and Port
 	if oscClient != nil {
 		oscClient.SetIP(c.OscHost)
@@ -71,5 +74,16 @@ func (c *Config) Save() {
 
 func (c *Config) SetWidgetId(widgetId string) {
 	config.WidgetId = widgetId
-	c.Save()
+}
+
+func (c *Config) SetMaxHeartRate(maxHeartRate int) {
+	config.MaxHeartRate = maxHeartRate
+}
+
+func (c *Config) SetConnectedParameterName(connectedPath string) {
+	config.OscConnectedPath = connectedPath
+}
+
+func (c *Config) SetPercentParameterName(percentPath string) {
+	config.OscPercentPath = percentPath
 }
