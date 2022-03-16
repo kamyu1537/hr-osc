@@ -8,7 +8,7 @@
 
   window.go.main.App.GetConnected().then(value => connected = value);
   window.go.main.App.GetHeartRate().then(value => heartRate = value);
-  window.go.main.App.GetHeartRatePercent().then(value => heartRatePercent = Math.floor(value * 100) * 0.01);
+  window.go.main.App.GetHeartRatePercent().then(value => heartRatePercent = value);
 
   window.runtime.EventsOn('onChangeConnected', (value) => {
     console.info('connected', value);
@@ -22,7 +22,7 @@
 
   window.runtime.EventsOn('onChangeHeartRatePercent', (value) => {
     console.info('heartRatePercent', value);
-    heartRatePercent = Math.floor(value * 100) * 0.01;
+    heartRatePercent = value;
   });
 </script>
 
@@ -38,7 +38,7 @@
     <h3>Heart Rate</h3>
     <div>
       {heartRate} bpm
-      <span style="color: gray; font-size: small">({heartRatePercent})</span>
+      <span style="color: gray; font-size: small">({heartRatePercent.toFixed(2)})</span>
     </div>
   </div>
 
