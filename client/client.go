@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	appContext     context.Context
+	appContext     *context.Context
 	oscClient      *osc.Client
 	wsCloseChannel chan struct{}
 	DisplayError   = ""
@@ -18,7 +18,7 @@ var (
 	HeartRate      = int64(0)
 )
 
-func Startup(ctx context.Context) {
+func Startup(ctx *context.Context) {
 	LoadConfig()
 	appContext = ctx
 	oscClient = osc.NewClient(config.OscHost, int(config.OscPort))
@@ -67,25 +67,25 @@ func Close() {
 
 func setDisplayError(err string) {
 	DisplayError = err
-	runtime.EventsEmit(appContext, "onChangeDisplayError", DisplayError)
+	runtime.EventsEmit(*appContext, "onChangeDisplayError", DisplayError)
 	log.Printf("DisplayError: %s\n", DisplayError)
 }
 
 func setLoading(loading bool) {
 	Loading = loading
-	runtime.EventsEmit(appContext, "onChangeLoading", Loading)
+	runtime.EventsEmit(*appContext, "onChangeLoading", Loading)
 	log.Printf("Loading: %t\n", Loading)
 }
 
 func setConnected(conn bool) {
 	IsConnected = conn
 	_ = oscClient.Send(osc.NewMessage(config.OscConnectedPath, conn))
-	runtime.EventsEmit(appContext, "onChangeConnected", IsConnected)
+	runtime.EventsEmit(*appContext, "onChangeConnected", IsConnected)
 	log.Printf("Connected: %t\n", IsConnected)
 }
 
 func setHeartRate(heartRate int64) {
 	HeartRate = heartRate
-	runtime.EventsEmit(appContext, "onChangeHeartRate", HeartRate)
+	runtime.EventsEmit(*appContext, "onChangeHeartRate", HeartRate)
 	log.Printf("HeartRate: %d\n", HeartRate)
 }

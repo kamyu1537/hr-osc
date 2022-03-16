@@ -19,7 +19,7 @@ func NewApp() *App {
 func (b *App) startup(ctx context.Context) {
 	// Perform your setup here
 	b.ctx = ctx
-	go client.Startup(ctx)
+	go client.Startup(&ctx)
 }
 
 // domReady is called after the front-end dom has been loaded
