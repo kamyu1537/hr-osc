@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"bytes"
@@ -7,6 +7,25 @@ import (
 	"io/ioutil"
 	"net/http"
 )
+
+type RequestData struct {
+	Id      string            `json:"id"`
+	JsonRpc string            `json:"jsonrpc"`
+	Method  string            `json:"method"`
+	Params  RequestDataParams `json:"params"`
+}
+
+type RequestDataParams struct {
+	WidgetId string `json:"widgetId"`
+}
+
+type ResponseData struct {
+	Result ResponseDataResult `json:"result"`
+}
+
+type ResponseDataResult struct {
+	WebSocketUrl string `json:"ramielUrl"`
+}
 
 var rpcUrl = "https://api.stromno.com/v1/api/public/rpc"
 

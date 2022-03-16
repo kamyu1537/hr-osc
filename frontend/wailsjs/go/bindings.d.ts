@@ -1,11 +1,11 @@
 export interface go {
   "main": {
     "App": {
-		CurrentHeartRate():Promise<number>
-		GetError():Promise<string>
-		IsLoading():Promise<boolean>
+		GetConnected():Promise<boolean>
+		GetDisplayError():Promise<string>
+		GetHeartRate():Promise<number>
+		GetLoading():Promise<boolean>
 		SetWidgetId(arg1:string):Promise<void>
-		WebSocketConnectionStatus():Promise<boolean>
     },
   }
 

@@ -1,72 +1,40 @@
 <script>
-    // let name = "";
-    // let greeting = "";
+  import Main          from './components/Main.svelte';
+  import Error         from './components/Error.svelte';
+  import WidgetIdInput from './components/WidgetIdInput.svelte';
 
-    // function greet() {
-    // 	window.go.main.App.Greet(name).then((result) => {
-    // 		greeting = result;
-    // 	});
-    // }
+  let loading = true;
+  let error = '';
 
-    let widgetId = "";
+  window.go.main.App.GetLoading().then(value => loading = value);
+  window.go.main.App.GetDisplayError().then(value => error = value);
 
-    let loading = true
-    let error = '';
-    let connected = false;
-    let heartRate = -1;
-
-    async function update() {
-        heartRate = await window.go.main.App.CurrentHeartRate();
-        connected = await window.go.main.App.WebSocketConnectionStatus();
-        error = await window.go.main.App.GetError();
-        loading = await window.go.main.App.IsLoading();
-    }
-
-    function setWidgetId() {
-        window.go.main.App.SetWidgetId(widgetId).then(update)
-    }
-
-    setInterval(async () => {
-        await update();
-    }, 1000);
-    update();
+  window.runtime.EventsOn('onChangeLoading', value => {
+    console.info('loading', value);
+    loading = value;
+  });
+  window.runtime.EventsOn('onChangeDisplayError', value => {
+    console.info('error', value);
+    error = value;
+  });
 </script>
 
-<main data-wails-no-drag>
+<main>
   <h1>hr-osc</h1>
 
-  {#if !loading}
-    <p>Connection Status: {connected ? 'Connected' : 'Disconnected'}</p>
-    {#if connected}
-      <p>Your HeartRate: {heartRate}</p>
-    {/if}
-    {#if error !== ''}
-      <div style="font-size: small">
-        <div style="font-weight: bold">Error!</div>
-        {error}
-      </div>
-    {/if}
-  {:else}
-    {#if error === 'widget_id'}
-      <h3>Your Stromno Widget ID</h3>
-      <div>
-        <input id="widget_id" type="text" bind:value={widgetId} placeholder="widget id">
-        <button on:click={setWidgetId}>change</button>
-      </div>
-    {:else if error !== ''}
-      <h3>Error!</h3>
-      <p>{error}</p>
+  <div data-wails-no-drag>
+    {#if !loading}
+      <Main error={error} />
     {:else}
-      <p>Loading...</p>
+      {#if error === 'widget_id'}
+        <WidgetIdInput />
+      {:else if error !== ''}
+        <Error>{error}</Error>
+      {:else}
+        <p>Loading...</p>
+      {/if}
     {/if}
-  {/if}
-  <!--	<div id="input" data-wails-no-drag>-->
-  <!--		<input id="name" type="text" bind:value={name}>-->
-  <!--		<button class="button" on:click={greet}>Greet</button>-->
-  <!--	</div>-->
-  <!--	{#if greeting}-->
-  <!--		<div id="result">{greeting}</div>-->
-  <!--	{/if}-->
+  </div>
 </main>
 
 <style>

@@ -5,25 +5,32 @@ const go = {
   "main": {
     "App": {
       /**
-       * CurrentHeartRate
-       * @returns {Promise<number>}  - Go Type: int64
-       */
-      "CurrentHeartRate": () => {
-        return window.go.main.App.CurrentHeartRate();
-      },
-      /**
-       * GetError
-       * @returns {Promise<string>}  - Go Type: string
-       */
-      "GetError": () => {
-        return window.go.main.App.GetError();
-      },
-      /**
-       * IsLoading
+       * GetConnected
        * @returns {Promise<boolean>}  - Go Type: bool
        */
-      "IsLoading": () => {
-        return window.go.main.App.IsLoading();
+      "GetConnected": () => {
+        return window.go.main.App.GetConnected();
+      },
+      /**
+       * GetDisplayError
+       * @returns {Promise<string>}  - Go Type: string
+       */
+      "GetDisplayError": () => {
+        return window.go.main.App.GetDisplayError();
+      },
+      /**
+       * GetHeartRate
+       * @returns {Promise<number>}  - Go Type: int64
+       */
+      "GetHeartRate": () => {
+        return window.go.main.App.GetHeartRate();
+      },
+      /**
+       * GetLoading
+       * @returns {Promise<boolean>}  - Go Type: bool
+       */
+      "GetLoading": () => {
+        return window.go.main.App.GetLoading();
       },
       /**
        * SetWidgetId
@@ -32,13 +39,6 @@ const go = {
        */
       "SetWidgetId": (arg1) => {
         return window.go.main.App.SetWidgetId(arg1);
-      },
-      /**
-       * WebSocketConnectionStatus
-       * @returns {Promise<boolean>}  - Go Type: bool
-       */
-      "WebSocketConnectionStatus": () => {
-        return window.go.main.App.WebSocketConnectionStatus();
       },
     },
   },

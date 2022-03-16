@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"hr-osc/client"
 )
 
 // App application struct
@@ -18,6 +19,7 @@ func NewApp() *App {
 func (b *App) startup(ctx context.Context) {
 	// Perform your setup here
 	b.ctx = ctx
+	go client.Startup(ctx)
 }
 
 // domReady is called after the front-end dom has been loaded
@@ -28,25 +30,25 @@ func (b *App) domReady(ctx context.Context) {
 // shutdown is called at application termination
 func (b *App) shutdown(ctx context.Context) {
 	// Perform your teardown here
-	close(done)
+	client.Close()
 }
 
-func (b *App) IsLoading() bool {
-	return loading
+func (b *App) GetLoading() bool {
+	return client.Loading
 }
 
-func (b *App) WebSocketConnectionStatus() bool {
-	return connected
+func (b *App) GetConnected() bool {
+	return client.IsConnected
 }
 
-func (b *App) CurrentHeartRate() int64 {
-	return heartRate
+func (b *App) GetHeartRate() int64 {
+	return client.HeartRate
 }
 
-func (b *App) GetError() string {
-	return oscError
+func (b *App) GetDisplayError() string {
+	return client.DisplayError
 }
 
 func (b *App) SetWidgetId(widgetId string) {
-	UpdateWidgetId(widgetId)
+	client.GetConfig().SetWidgetId(widgetId)
 }

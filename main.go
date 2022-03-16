@@ -2,9 +2,8 @@ package main
 
 import (
 	"embed"
-	"fmt"
-	"github.com/hypebeast/go-osc/osc"
 	"log"
+	"runtime"
 
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 
@@ -20,52 +19,8 @@ var assets embed.FS
 //go:embed build/appicon.png
 var icon []byte
 
-var (
-	oscc     *osc.Client
-	done     = make(chan struct{})
-	oscError string
-)
-
-var loading = true
-
-func oscInit() {
-	select {
-	case <-done:
-		return
-	default:
-		break
-	}
-
-	oscError = ""
-	loading = true
-
-	ConfigLoader()
-	if config.WidgetId == "" {
-		oscError = "widget_id"
-		return
-	}
-
-	oscc = osc.NewClient(config.OscHost, int(config.OscPort))
-
-	url, err := GetWebSocketUrl(config.WidgetId)
-	if err != nil {
-		oscError = "an error occurred while getting websocket url!!"
-		return
-	}
-
-	if url == "" {
-		oscError = "widget_id"
-		return
-	}
-
-	done = make(chan struct{})
-	log.Println(fmt.Sprintf("websocket url: %s", url))
-	go ConnectWebSocketServer(url)
-	loading = false
-}
-
 func main() {
-	go oscInit()
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Create an instance of the app structure
 	app := NewApp()
