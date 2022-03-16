@@ -32,7 +32,7 @@
   }
 
   function toggleSettings(value) {
-    settings = value ?? !settings;
+    settings = typeof value === 'boolean' ? value : !settings;
     updateWindowSize();
   }
 

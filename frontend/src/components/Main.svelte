@@ -44,7 +44,7 @@
 
   <div class={error ? 'disconnected' : ''}>
     <h3>Last Error</h3>
-    <div style="font-size: small">{error || 'No error'}</div>
+    <div style="font-size: small">{error || 'No error.'}</div>
   </div>
 </div>
 

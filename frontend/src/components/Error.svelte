@@ -1,5 +1,5 @@
 <div>
-  <h3>Error!</h3>
+  <h3>Loading failed</h3>
   <p>
     <slot></slot>
   </p>

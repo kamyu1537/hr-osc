@@ -42,8 +42,8 @@
     if (promises.length > 0) {
       await Promise.all(promises);
       await window.go.main.App.SaveConfig();
-      dispatch('onChangeConfig');
     }
+    dispatch('onChangeConfig');
   }
 </script>
 
@@ -54,10 +54,10 @@
   <h4>Max Heart Rate</h4>
   <input bind:value={maxHeartRate} min="0" placeholder="max heart rate (default: 200)" type="number" />
 
-  <h4>Connected Parameter Name</h4>
+  <h4>Connected Parameter Path</h4>
   <input bind:value={connectedName} placeholder="/avatar/parameters/hr_connected" />
 
-  <h4>Percent Parameter Name</h4>
+  <h4>Percent Parameter Path</h4>
   <input bind:value={percentName} placeholder="/avatar/parameters/hr_percent" />
 
   <div class="save_button" on:click={save}>Save</div>
