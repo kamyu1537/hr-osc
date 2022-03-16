@@ -1,6 +1,9 @@
 # HR-OSC
 Stromno HeartRate Client for VRChat OSC
 
+## Environment
+* Go 1.18
+
 ## Requirement
 * wails
 ```shell
