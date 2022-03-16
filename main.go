@@ -20,7 +20,7 @@ var assets embed.FS
 var icon []byte
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(2)
 
 	// Create an instance of the app structure
 	app := NewApp()
