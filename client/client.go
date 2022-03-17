@@ -29,15 +29,18 @@ func Startup(ctx *context.Context) {
 
 func Init() {
 	// 서버가 활성화 되어있음
-	select {
-	case <-wsCloseChannel:
-		log.Println("already started")
-		return
-	default:
-		break
+	if wsCloseChannel != nil {
+		select {
+		case <-wsCloseChannel:
+			break
+		default:
+			log.Println("already started")
+			return
+		}
+	} else {
+		setDisplayError("")
 	}
 
-	setDisplayError("")
 	setLoading(true)
 
 	if config.WidgetId == "" {

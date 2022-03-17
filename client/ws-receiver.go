@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gobwas/ws"
@@ -22,26 +21,20 @@ type WebSocketReceiveData struct {
 }
 
 func ConnectToWebSocketServer(address string) {
+	defer func() { recover() }()
 	wsCloseChannel = make(chan struct{})
 
 	log.Println("connection to stromno websocket server")
-	wsContext, wsCancel := context.WithCancel(context.TODO())
-	defer func() { wsCancel() }()
-	conn, _, _, err := ws.DefaultDialer.Dial(wsContext, address)
+	conn, _, _, err := ws.DefaultDialer.Dial(*appContext, address)
 	if err != nil {
 		setDisplayError(fmt.Sprintf("ws connect: %s", err.Error()))
 		return
 	}
-	defer func() {
-		recover()
-		_ = conn.Close()
-	}()
+	defer func() { _ = conn.Close() }()
 
 	_ = conn.SetDeadline(time.Time{})
 	_ = conn.SetReadDeadline(time.Time{})
 	_ = conn.SetWriteDeadline(time.Time{})
-
-	reader := wsutil.NewClientSideReader(conn)
 
 	setConnected(false)
 
@@ -52,33 +45,21 @@ messageReceiveLoop:
 	for {
 		select {
 		case <-wsCloseChannel:
-			_ = conn.Close()
-			break messageReceiveLoop
-		case <-wsContext.Done():
-			if wsContext.Err() != nil {
-				setDisplayError(wsContext.Err().Error())
-			}
 			break messageReceiveLoop
 		default:
-		}
-
-		_, err := reader.NextFrame()
-		if err != nil {
-			setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
-			close(wsCloseChannel)
-			break
 		}
 
 		data, err := wsutil.ReadServerText(conn)
 		if err != nil {
 			setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
+			close(wsCloseChannel)
 			continue
 		}
 
 		var msg WebSocketReceiveMessage
 		err = json.Unmarshal(data, &msg)
 		if err != nil {
-			setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
+			setDisplayError(fmt.Sprintf("ws json: %s", err.Error()))
 			continue
 		}
 
@@ -98,6 +79,7 @@ messageReceiveLoop:
 	case <-(*appContext).Done():
 		return
 	case <-wsCloseChannel:
+		log.Println("restart")
 		Init()
 		break
 	default:
