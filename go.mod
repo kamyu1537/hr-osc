@@ -3,8 +3,8 @@ module hr-osc
 go 1.18
 
 require (
+	github.com/gobwas/ws v1.1.0
 	github.com/google/uuid v1.3.0
-	github.com/gorilla/websocket v1.5.0
 	github.com/hypebeast/go-osc v0.0.0-20220308234300-cec5a8a1e5f5
 	github.com/wailsapp/wails/v2 v2.0.0-beta.33
 )
@@ -15,6 +15,8 @@ require (
 	github.com/fasthttp/websocket v0.0.0-20200320073529-1554a54587ab // indirect
 	github.com/gabriel-vasile/mimetype v1.3.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gofiber/fiber/v2 v2.17.0 // indirect
 	github.com/gofiber/websocket/v2 v2.0.8 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
