@@ -51,8 +51,7 @@
 
     align-items: center;
     justify-content: space-between;
-
-    cursor: all-scroll;
+    cursor: default;
   }
 
   .top_menu > .title {
