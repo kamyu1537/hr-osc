@@ -70,7 +70,7 @@
     align-items: center;
     justify-content: flex-end;
 
-    cursor: all-scroll;
+    cursor: default;
   }
 
   .top_menu > .buttons > div {
