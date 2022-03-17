@@ -22,6 +22,11 @@ var icon []byte
 func main() {
 	runtime.GOMAXPROCS(2)
 
+	frameless := true
+	if runtime.GOOS == "darwin" {
+		frameless = false
+	}
+
 	// Create an instance of the app structure
 	app := NewApp()
 
@@ -36,7 +41,7 @@ func main() {
 		MaxHeight:         255,
 		DisableResize:     true,
 		Fullscreen:        false,
-		Frameless:         true,
+		Frameless:         frameless,
 		StartHidden:       false,
 		HideWindowOnClose: false,
 		RGBA:              &options.RGBA{R: 33, G: 37, B: 43, A: 255},
@@ -52,14 +57,14 @@ func main() {
 		// Windows platform specific options
 		Windows: &windows.Options{
 			WebviewIsTransparent: false,
-			WindowIsTranslucent:  false,
+			WindowIsTranslucent:  true,
 			DisableWindowIcon:    true,
 		},
 		Mac: &mac.Options{
 			TitleBar:             mac.TitleBarHiddenInset(),
 			Appearance:           mac.NSAppearanceNameDarkAqua,
-			WebviewIsTransparent: false,
-			WindowIsTranslucent:  false,
+			WebviewIsTransparent: true,
+			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{
 				Title:   "hr-osc",
 				Message: "© 2021 kamyu1537",

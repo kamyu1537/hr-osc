@@ -1,14 +1,15 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
+	"github.com/hypebeast/go-osc/osc"
 	"log"
 	"math"
 	"time"
-
-	"github.com/gorilla/websocket"
-	"github.com/hypebeast/go-osc/osc"
 )
 
 type WebSocketReceiveMessage struct {
@@ -20,66 +21,86 @@ type WebSocketReceiveData struct {
 	HeartRate int64 `json:"heartRate"`
 }
 
-func ConnectWebSocketServer(address string) {
-	log.Println("connecting to stromno websocket server")
-	ws, _, err := websocket.DefaultDialer.Dial(address, nil)
+func ConnectToWebSocketServer(address string) {
+	wsCloseChannel = make(chan struct{})
 
-	timeout := time.NewTimer(0)
-	go receiveTimeout(timeout)
-
+	log.Println("connection to stromno websocket server")
+	wsContext, wsCancel := context.WithCancel(context.TODO())
+	defer func() { wsCancel() }()
+	conn, _, _, err := ws.DefaultDialer.Dial(wsContext, address)
 	if err != nil {
-		setDisplayError(fmt.Sprintf("ws connection: %s", err.Error()))
+		setDisplayError(fmt.Sprintf("ws connect: %s", err.Error()))
 		return
 	}
-	log.Println("stromno websocket server connected!")
-	defer func() { _ = ws.Close() }()
-
-	setConnected(false)
-	receiveMessage(ws, timeout)
-}
-
-func receiveMessage(ws *websocket.Conn, timer *time.Timer) {
 	defer func() {
-		select {
-		case <-wsCloseChannel:
-			log.Println("channel closed")
-		default:
-			recover()
-		}
+		recover()
+		_ = conn.Close()
 	}()
 
+	_ = conn.SetDeadline(time.Time{})
+	_ = conn.SetReadDeadline(time.Time{})
+	_ = conn.SetWriteDeadline(time.Time{})
+
+	reader := wsutil.NewClientSideReader(conn)
+
+	setConnected(false)
+
+	timer := time.NewTimer(0)
+	go receiveTimeout(timer)
+
+messageReceiveLoop:
 	for {
-		// 서버가 활성화 되어있음
 		select {
 		case <-wsCloseChannel:
-			log.Println("channel closed")
-			break
+			_ = conn.Close()
+			break messageReceiveLoop
+		case <-wsContext.Done():
+			if wsContext.Err() != nil {
+				setDisplayError(wsContext.Err().Error())
+			}
+			break messageReceiveLoop
 		default:
-			_ = ws.SetReadDeadline(time.Time{})
-			_, message, err := ws.ReadMessage()
-			if err != nil {
-				setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
-				continue
-			}
-
-			var msg WebSocketReceiveMessage
-			err = json.Unmarshal(message, &msg)
-			if err != nil {
-				setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
-				continue
-			}
-
-			setHeartRate(msg.Data.HeartRate)
-			heartRatePercent := float64(msg.Data.HeartRate) / float64(config.MaxHeartRate)
-			heartRatePercent *= 100
-			heartRatePercent = math.Floor(heartRatePercent)
-			heartRatePercent *= 0.01
-
-			setHeartRatePercent(heartRatePercent)
-			_ = oscClient.Send(osc.NewMessage(config.OscPercentPath, float32(heartRatePercent)))
-			timer.Reset(time.Second * time.Duration(config.Timeout))
-			setConnected(true)
 		}
+
+		_, err := reader.NextFrame()
+		if err != nil {
+			setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
+			close(wsCloseChannel)
+			break
+		}
+
+		data, err := wsutil.ReadServerText(conn)
+		if err != nil {
+			setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
+			continue
+		}
+
+		var msg WebSocketReceiveMessage
+		err = json.Unmarshal(data, &msg)
+		if err != nil {
+			setDisplayError(fmt.Sprintf("ws message: %s", err.Error()))
+			continue
+		}
+
+		setHeartRate(msg.Data.HeartRate)
+		heartRatePercent := float64(msg.Data.HeartRate) / float64(config.MaxHeartRate)
+		heartRatePercent *= 100
+		heartRatePercent = math.Floor(heartRatePercent)
+		heartRatePercent *= 0.01
+
+		setHeartRatePercent(heartRatePercent)
+		_ = oscClient.Send(osc.NewMessage(config.OscPercentPath, float32(heartRatePercent)))
+		timer.Reset(time.Second * time.Duration(config.Timeout))
+		setConnected(true)
+	}
+
+	select {
+	case <-(*appContext).Done():
+		return
+	case <-wsCloseChannel:
+		Init()
+		break
+	default:
 	}
 }
 

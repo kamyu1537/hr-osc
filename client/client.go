@@ -37,7 +37,6 @@ func Init() {
 		break
 	}
 
-	wsCloseChannel = make(chan struct{})
 	setDisplayError("")
 	setLoading(true)
 
@@ -58,8 +57,8 @@ func Init() {
 	}
 
 	log.Printf("websocket url: %s\n", url)
-	go ConnectWebSocketServer(url)
 	setLoading(false)
+	ConnectToWebSocketServer(url)
 }
 
 func Close() {
