@@ -19,6 +19,8 @@ var assets embed.FS
 //go:embed build/appicon.png
 var icon []byte
 
+var app *App
+
 func main() {
 	runtime.GOMAXPROCS(2)
 
@@ -28,7 +30,7 @@ func main() {
 	}
 
 	// Create an instance of the app structure
-	app := NewApp()
+	app = NewApp()
 
 	// Create application with options
 	err := wails.Run(&options.App{

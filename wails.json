@@ -3,8 +3,8 @@
   "frontend:build": "npm run build",
   "frontend:install": "npm install",
   "frontend:dev": "",
-  "frontend:dev:watcher": "",
-  "wailsjsdir": "./frontend",
+  "frontend:dev:watcher": "npm run dev",
+  "wailsjsdir": "./frontend/dist",
   "version": "2",
   "Path": "",
   "BuildDir": "",
@@ -21,8 +21,8 @@
     "companyName": "hr-osc",
     "productName": "hr-osc",
     "productVersion": "1.0.0",
-    "copyright": "Copyright.........",
-    "comments": "Built using Wails (https://wails.app)"
+    "copyright": "Copyright kamyu1537",
+    "comments": "Stromno Client for VRChat OSC"
   },
   "debounceMS": 100,
   "devserverurl": "http://localhost:34115",

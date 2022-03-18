@@ -6,45 +6,10 @@ const go = {
     "App": {
       /**
        * GetConfig
-       * @returns {Promise<Config>}  - Go Type: *client.Config
+       * @returns {Promise<Config>}  - Go Type: *main.Config
        */
       "GetConfig": () => {
         return window.go.main.App.GetConfig();
-      },
-      /**
-       * GetConnected
-       * @returns {Promise<boolean>}  - Go Type: bool
-       */
-      "GetConnected": () => {
-        return window.go.main.App.GetConnected();
-      },
-      /**
-       * GetDisplayError
-       * @returns {Promise<string>}  - Go Type: string
-       */
-      "GetDisplayError": () => {
-        return window.go.main.App.GetDisplayError();
-      },
-      /**
-       * GetHeartRate
-       * @returns {Promise<number>}  - Go Type: int64
-       */
-      "GetHeartRate": () => {
-        return window.go.main.App.GetHeartRate();
-      },
-      /**
-       * GetHeartRatePercent
-       * @returns {Promise<number>}  - Go Type: float64
-       */
-      "GetHeartRatePercent": () => {
-        return window.go.main.App.GetHeartRatePercent();
-      },
-      /**
-       * GetLoading
-       * @returns {Promise<boolean>}  - Go Type: bool
-       */
-      "GetLoading": () => {
-        return window.go.main.App.GetLoading();
       },
       /**
        * GetOS
@@ -54,6 +19,13 @@ const go = {
         return window.go.main.App.GetOS();
       },
       /**
+       * GetWebSocketUrl
+       * @returns {Promise<string>}  - Go Type: string
+       */
+      "GetWebSocketUrl": () => {
+        return window.go.main.App.GetWebSocketUrl();
+      },
+      /**
        * SaveConfig
        * @returns {Promise<void>} 
        */
@@ -61,36 +33,30 @@ const go = {
         return window.go.main.App.SaveConfig();
       },
       /**
-       * SetConnectedParameterName
+       * SendOSCBool
        * @param {string} arg1 - Go Type: string
+       * @param {boolean} arg2 - Go Type: bool
        * @returns {Promise<void>} 
        */
-      "SetConnectedParameterName": (arg1) => {
-        return window.go.main.App.SetConnectedParameterName(arg1);
+      "SendOSCBool": (arg1, arg2) => {
+        return window.go.main.App.SendOSCBool(arg1, arg2);
       },
       /**
-       * SetMaxHeartRate
-       * @param {number} arg1 - Go Type: int
+       * SendOSCFloat
+       * @param {string} arg1 - Go Type: string
+       * @param {number} arg2 - Go Type: float32
        * @returns {Promise<void>} 
        */
-      "SetMaxHeartRate": (arg1) => {
-        return window.go.main.App.SetMaxHeartRate(arg1);
+      "SendOSCFloat": (arg1, arg2) => {
+        return window.go.main.App.SendOSCFloat(arg1, arg2);
       },
       /**
-       * SetPercentParameterName
+       * UpdateConfig
        * @param {string} arg1 - Go Type: string
-       * @returns {Promise<void>} 
+       * @returns {Promise<string>}  - Go Type: string
        */
-      "SetPercentParameterName": (arg1) => {
-        return window.go.main.App.SetPercentParameterName(arg1);
-      },
-      /**
-       * SetWidgetId
-       * @param {string} arg1 - Go Type: string
-       * @returns {Promise<void>} 
-       */
-      "SetWidgetId": (arg1) => {
-        return window.go.main.App.SetWidgetId(arg1);
+      "UpdateConfig": (arg1) => {
+        return window.go.main.App.UpdateConfig(arg1);
       },
     },
   },
