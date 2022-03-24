@@ -75,7 +75,7 @@
     if (!once) {
       receiveDataStore.subscribe(value => {
         window.go.main.App.SendOSCBool(config.osc_path_connected, value.connected).then();
-        window.go.main.App.SendOSCFloat(config.osc_path_percent, value.heartRate).then();
+        window.go.main.App.SendOSCFloat(config.osc_path_percent, value.heartRate / (config.max_heart_rate || 200)).then();
       });
 
       websocketUrlStore.subscribe(url => {
