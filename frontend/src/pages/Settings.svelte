@@ -37,7 +37,7 @@
 
     loading = true;
     try {
-      const newConfig = await window.go.main.App.UpdateConfig(JSON.stringify({
+      const newConfig = {
         widget_id: widgetId,
         timeout: timeout,
         osc_client_host: host,
@@ -45,11 +45,10 @@
         osc_path_connected: connectedPath,
         osc_path_percent: percentPath,
         max_heart_rate: heartRate,
-      }));
+      };
+      await window.go.main.App.UpdateConfig(JSON.stringify(newConfig));
       await window.go.main.App.SaveConfig();
-      configStore.set(produce(config, draft => {
-        Object.assign(draft, JSON.parse(newConfig));
-      }));
+      configStore.set(produce(config, draft => Object.assign(draft, newConfig)));
     } catch (e) {
       console.error(e);
     } finally {
