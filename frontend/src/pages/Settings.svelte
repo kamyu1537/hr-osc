@@ -36,7 +36,6 @@
 
     loading = true;
     try {
-      await window.go.main.App.SaveConfig();
       await window.go.main.App.UpdateConfig(JSON.stringify({
         widget_id: widgetId,
         timeout: timeout,
@@ -46,11 +45,12 @@
         osc_path_percent: percentPath,
         max_heart_rate: heartRate,
       }));
+      await window.go.main.App.SaveConfig();
     } catch (e) {
       console.error(e);
     } finally {
       loading = false;
-      push('/');
+      push('/').then();
     }
   };
 </script>
@@ -97,4 +97,3 @@
     </button>
   </div>
 </div>
-
