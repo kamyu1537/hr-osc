@@ -6,6 +6,7 @@
   import Tab             from '../components/tabs/Tab.svelte';
   import TabPanel        from '../components/tabs/Tabpanel.svelte';
   import { configStore } from '../utils/stores.js';
+  import produce from 'immer';
 
   let config;
 
@@ -36,7 +37,7 @@
 
     loading = true;
     try {
-      await window.go.main.App.UpdateConfig(JSON.stringify({
+      const newConfig = await window.go.main.App.UpdateConfig(JSON.stringify({
         widget_id: widgetId,
         timeout: timeout,
         osc_client_host: host,
@@ -46,6 +47,9 @@
         max_heart_rate: heartRate,
       }));
       await window.go.main.App.SaveConfig();
+      configStore.set(produce(config, draft => {
+        Object.assign(draft, JSON.parse(newConfig));
+      }));
     } catch (e) {
       console.error(e);
     } finally {
