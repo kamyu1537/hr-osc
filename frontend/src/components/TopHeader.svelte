@@ -57,13 +57,13 @@
       {/if}
 
       {#if os !== 'darwin'}
-        <a
+        <div
           class='rounded-full overflow-hidden hover:text-gray-800 hover:bg-rose-500 w-6 h-6 flex items-center justify-center transition-colors cursor-pointer'
-          data-wails-no-drag href='/' use:link>
+          data-wails-no-drag on:click={() => window.runtime.Quit()}>
           <div class='w-6 h-6'>
             <IoIosClose />
           </div>
-        </a>
+        </div>
       {/if}
     </div>
   </div>
