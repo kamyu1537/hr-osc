@@ -13,12 +13,13 @@ go install github.com/wailsapp/wails/v2/cmd/wails@latest
 ```
 
 ## Development
-### First
 ```shell
-cd frontend && npm install
-```
-### Wails Live Development
-```shell
+# svelte npm package install
+cd frontend
+npm install
+cd ..
+
+# wails live development
 wails dev
 ```
 
