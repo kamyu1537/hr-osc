@@ -1,14 +1,12 @@
 <script>
-  import produce                                              from 'immer';
+  import produce from 'immer';
   import { configStore, receiveDataStore, websocketUrlStore } from '../utils/stores';
-
-  let once;
 
   let ws;
   let config;
   let timeout;
   let lastAddress;
-  let receive = { connected: false, heartRate: 0 };
+  let receive = {connected: false, heartRate: 0};
 
   const startTimer = () => {
     if (!receive) return;
@@ -25,9 +23,14 @@
 
   const connect = (address) => {
     if (!address) return;
+
     if (ws) {
-      console.info('close');
-      ws.close();
+      try {
+        console.info('close');
+        ws.close();
+      } catch (e) {
+        console.error(e);
+      }
       ws = null;
     }
 
@@ -54,9 +57,11 @@
         console.error(e);
       }
     };
-    ws.onerror = (event) => {
-      console.error(event);
+    ws.onerror = (error) => {
+      console.error(error);
+      setTimeout(() => connect(address), 0);
     };
+
     ws.onclose = () => {
       console.info('closed');
       setTimeout(() => connect(address), 0);
@@ -71,18 +76,14 @@
 
   configStore.subscribe(value => {
     config = value;
+  });
 
-    if (!once) {
-      receiveDataStore.subscribe(value => {
-        window.go.main.App.SendOSCBool(config.osc_path_connected, value.connected).then();
-        window.go.main.App.SendOSCFloat(config.osc_path_percent, value.heartRate / (config.max_heart_rate || 200)).then();
-      });
+  receiveDataStore.subscribe(value => {
+    window.go.main.App.SendOSCBool(config.osc_path_connected, value.connected).then();
+    window.go.main.App.SendOSCFloat(config.osc_path_percent, value.heartRate / (config.max_heart_rate || 200)).then();
+  });
 
-      websocketUrlStore.subscribe(url => {
-        onWebsocketUrlChange(url);
-      });
-
-      once = true;
-    }
+  websocketUrlStore.subscribe(url => {
+    onWebsocketUrlChange(url);
   });
 </script>
