@@ -53,6 +53,7 @@ func main() {
 		OnDomReady:        app.domReady,
 		OnShutdown:        app.shutdown,
 		OnBeforeClose:     app.beforeClose,
+		AlwaysOnTop:       true,
 		Bind: []interface{}{
 			app,
 		},
