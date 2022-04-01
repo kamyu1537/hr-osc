@@ -1,6 +1,7 @@
 <script>
   import produce from 'immer';
   import { configStore, receiveDataStore, websocketUrlStore } from '../utils/stores';
+  import { push } from 'svelte-spa-router';
 
   let ws;
   let config;
@@ -59,12 +60,12 @@
     };
     ws.onerror = (error) => {
       console.error(error);
-      setTimeout(() => connect(address), 0);
+      setTimeout(() => reconnect(), 0);
     };
 
     ws.onclose = () => {
       console.info('closed');
-      setTimeout(() => connect(address), 0);
+      setTimeout(() => reconnect(), 0);
     };
   };
 
@@ -73,6 +74,19 @@
     lastAddress = newAddress;
     connect(newAddress);
   };
+
+  const reconnect = () => {
+    console.info('reconnect');
+    window.go.main.App.GetWebSocketUrl().then(result => {
+      if (result !== '') {
+        lastAddress = result;
+        connect(result);
+        websocketUrlStore.set(result);
+      } else {
+        push('/widgetId').then();
+      }
+    });
+  }
 
   configStore.subscribe(value => {
     config = value;
