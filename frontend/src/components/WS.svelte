@@ -82,8 +82,6 @@
         lastAddress = result;
         connect(result);
         websocketUrlStore.set(result);
-      } else {
-        push('/widgetId').then();
       }
     });
   }
@@ -97,7 +95,7 @@
     window.go.main.App.SendOSCFloat(config.osc_path_percent, value.heartRate / (config.max_heart_rate || 200)).then();
   });
 
-  websocketUrlStore.subscribe(url => {
-    onWebsocketUrlChange(url);
+  websocketUrlStore.subscribe(value => {
+    onWebsocketUrlChange(value);
   });
 </script>
