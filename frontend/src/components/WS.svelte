@@ -82,6 +82,8 @@
         lastAddress = result;
         connect(result);
         websocketUrlStore.set(result);
+      } else {
+        connect(lastAddress);
       }
     });
   }
