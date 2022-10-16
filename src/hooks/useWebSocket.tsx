@@ -70,6 +70,12 @@ const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () 
         disconnected();
       };
     })();
+
+    return () => {
+      console.info('unmount');
+      if (socket) socket.close();
+      socket = null;
+    };
   }, [config]);
 };
 
