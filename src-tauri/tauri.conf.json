@@ -1,0 +1,77 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "hr-osc",
+    "version": "0.2.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true,
+      "fs": {
+        "all": true,
+        "copyFile": true,
+        "createDir": true,
+        "exists": true,
+        "readDir": true,
+        "readFile": true,
+        "removeDir": true,
+        "removeFile": true,
+        "renameFile": true,
+        "scope": ["$APP/*"],
+        "writeFile": true
+      },
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": ["https://api.stromno.com/v1/api/*"]
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "DeveloperTool",
+      "copyright": "",
+      "deb": {
+        "depends": []
+      },
+      "externalBin": [],
+      "icon": ["icons/icon.ico", "icons/icon.png"],
+      "identifier": "me.kamyu.hr-osc",
+      "longDescription": "",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "resources": [],
+      "shortDescription": "",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 250,
+        "resizable": false,
+        "title": "hr-osc",
+        "width": 325
+      }
+    ]
+  }
+}
