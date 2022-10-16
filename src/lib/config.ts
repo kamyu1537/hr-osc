@@ -1,4 +1,4 @@
-import { BaseDirectory, exists, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
+import { BaseDirectory, createDir, exists, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
 import { createContext } from 'react';
 
 export const defaultConfig: IConfig = {
@@ -17,7 +17,7 @@ export const defaultConfig: IConfig = {
 async function writeDefaultConfig() {
   await writeTextFile(
     {
-      path: 'config.json',
+      path: 'data/config.json',
       contents: JSON.stringify(defaultConfig, null, 2),
     },
     { dir: BaseDirectory.App }
@@ -25,13 +25,14 @@ async function writeDefaultConfig() {
 }
 
 export async function getConfig() {
-  const isExists = (await exists('config.json', { dir: BaseDirectory.App })) as unknown as boolean;
+  createDir('data', { recursive: true, dir: BaseDirectory.App });
+  const isExists = (await exists('data/config.json', { dir: BaseDirectory.App })) as unknown as boolean;
   if (!isExists) {
     await writeDefaultConfig();
   }
 
   let config = { ...defaultConfig };
-  const read = await readTextFile('config.json', { dir: BaseDirectory.App });
+  const read = await readTextFile('data/config.json', { dir: BaseDirectory.App });
   try {
     const parse = JSON.parse(read);
     config = { ...config, ...parse };
@@ -55,14 +56,14 @@ export const clear = () => {
 export async function saveConfig(config: IConfig) {
   await writeTextFile(
     {
-      path: 'config.json',
+      path: 'data/config.json',
       contents: JSON.stringify(config, null, 2),
     },
     { dir: BaseDirectory.App }
   );
 
   let newConfig = { ...defaultConfig };
-  const read = await readTextFile('config.json', { dir: BaseDirectory.App });
+  const read = await readTextFile('data/config.json', { dir: BaseDirectory.App });
   try {
     const parse = JSON.parse(read);
     newConfig = { ...newConfig, ...parse };
