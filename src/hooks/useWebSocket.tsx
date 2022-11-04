@@ -47,7 +47,7 @@ const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () 
         try {
           const json = JSON.parse(event.data) as HeartRateData;
           onMessage?.(json.data.heartRate);
-          sendOscFloat(config, config.osc_path_percent, Math.floor((json.data.heartRate / 200) * 100) * 0.01);
+          sendOscFloat(config, config.osc_path_percent, json.data.heartRate / config.max_heart_rate);
         } catch (err) {
           console.error(err);
         }
