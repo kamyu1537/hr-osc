@@ -7,6 +7,8 @@ type GetWidgetResponse = {
   result: {
     ramielUrl: string;
   };
+
+  error?: {};
 };
 
 export const getWebSocketUrl = async (widgetId: string) => {
@@ -27,5 +29,12 @@ export const getWebSocketUrl = async (widgetId: string) => {
     }),
   });
 
+  if (response.status !== 200) {
+    return '';
+  }
+
+  if (response.data.error) {
+    return '';
+  }
   return response.data.result.ramielUrl;
 };

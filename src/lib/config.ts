@@ -1,5 +1,5 @@
 import { BaseDirectory, createDir, exists, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
-import { createContext } from 'react';
+import { useConfig } from './states';
 
 export const defaultConfig: IConfig = {
   stromno_widget_id: '',
@@ -44,15 +44,6 @@ export async function getConfig() {
   return config;
 }
 
-export let updateConfig: ((conf: IConfig) => void)[] = [];
-const update = (config: IConfig) => {
-  updateConfig.forEach((hook) => hook(config));
-};
-
-export const clear = () => {
-  updateConfig = [];
-};
-
 export async function saveConfig(config: IConfig) {
   await writeTextFile(
     {
@@ -72,7 +63,7 @@ export async function saveConfig(config: IConfig) {
     await writeDefaultConfig();
   }
 
-  update(newConfig);
+  useConfig.getState().setConfig({ ...newConfig });
 }
 
 export interface IConfig {
@@ -87,5 +78,3 @@ export interface IConfig {
   osc_client_host: string;
   osc_client_port: number;
 }
-
-export const ConfigContext = createContext<IConfig | null>(null);

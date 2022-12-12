@@ -1,7 +1,7 @@
-import { useContext, useEffect } from 'react';
-import { ConfigContext } from '../lib/config';
+import { useEffect } from 'react';
 import { sendOscBool, sendOscFloat } from '../lib/osc';
 import { getWebSocketUrl } from '../lib/stromno';
+import { useConfig } from '../lib/states';
 
 type HeartRateData = {
   data: {
@@ -13,7 +13,7 @@ let timeout: ReturnType<typeof setTimeout>;
 let socket: WebSocket | null = null;
 
 const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void) => {
-  const config = useContext(ConfigContext);
+  const config = useConfig((state) => state.config);
 
   useEffect(() => {
     if (!config?.stromno_widget_id) {
@@ -22,18 +22,29 @@ const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () 
     }
 
     (async () => {
+      console.info('connecting to websocket');
+
       const wsUrl = await getWebSocketUrl(config.stromno_widget_id);
+      if (!wsUrl) {
+        if (socket) socket.close();
+
+        console.info('failed to get websocket url');
+        return;
+      }
+
       if (socket) socket.close();
 
       socket = new WebSocket(wsUrl);
 
       const connected = () => {
+        console.info('connected');
         onConnected?.();
         clearTimeout(timeout);
         sendOscBool(config, config.osc_path_connected, true);
       };
 
       const disconnected = () => {
+        console.info('disconnected');
         onDisconnect?.();
         clearTimeout(timeout);
         sendOscBool(config, config.osc_path_connected, false);

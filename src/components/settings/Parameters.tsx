@@ -1,9 +1,10 @@
-import { useContext } from 'react';
 import useInput from '../../hooks/useInput';
-import { ConfigContext, defaultConfig, saveConfig } from '../../lib/config';
+import { defaultConfig, saveConfig } from '../../lib/config';
+import { useConfig } from '../../lib/states';
 
 const Parameters = () => {
-  const config = useContext(ConfigContext);
+  const config = useConfig((state) => state.config);
+
   const connected = useInput(
     { placeholder: defaultConfig.osc_path_connected + '', type: 'text' },
     config?.osc_path_connected,
