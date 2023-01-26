@@ -2,7 +2,12 @@ import { invoke } from '@tauri-apps/api';
 import { IConfig } from './config';
 
 const getAddr = (config: IConfig) => {
-  return config.osc_client_host + ':' + config.osc_client_port;
+  let host = config.osc_client_host;
+  if (new RegExp('(?:[0-9]{1,3}.){3}[0-9]{1,3}', 'g').test(host)) {
+    host = '127.0.0.1';
+  }
+
+  return host + ':' + config.osc_client_port;
 };
 
 export const sendOscFloat = (config: IConfig, path: string, value: number) => {
