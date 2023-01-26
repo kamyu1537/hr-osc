@@ -14,26 +14,43 @@ lazy_static! {
     static ref SOCKET: UdpSocket = UdpSocket::bind("127.0.0.1:0").unwrap();
 }
 
+fn encode_message(msg: OscMessage) -> Option<Vec<u8>> {
+    match encoder::encode(&OscPacket::Message(msg)) {
+        Ok(buf) => Some(buf),
+        Err(_) => None,
+    }
+}
+
+fn send_osc_message(addr: &str, msg_buf: Option<Vec<u8>>) {
+    match msg_buf {
+        Some(buf) => match SOCKET.send_to(&buf, addr) {
+            Ok(_) => println!("Sent OSC message to {}", addr),
+            Err(err) => println!("Error sending OSC message: {}", err),
+        },
+        None => println!("Error encoding OSC message"),
+    }
+}
+
 #[tauri::command]
 fn send_float(addr: &str, path: &str, value: f32) {
-    let msg_buf = encoder::encode(&OscPacket::Message(OscMessage {
-        addr: path.to_string(),
-        args: vec![OscType::Float(value)],
-    }))
-    .unwrap();
-
-    SOCKET.send_to(&msg_buf, addr).unwrap();
+    send_osc_message(
+        addr,
+        encode_message(OscMessage {
+            addr: path.to_string(),
+            args: vec![OscType::Float(value)],
+        }),
+    )
 }
 
 #[tauri::command]
 fn send_bool(addr: &str, path: &str, value: bool) {
-    let msg_buf = encoder::encode(&OscPacket::Message(OscMessage {
-        addr: path.to_string(),
-        args: vec![OscType::Bool(value)],
-    }))
-    .unwrap();
-
-    SOCKET.send_to(&msg_buf, addr).unwrap();
+    send_osc_message(
+        addr,
+        encode_message(OscMessage {
+            addr: path.to_string(),
+            args: vec![OscType::Bool(value)],
+        }),
+    )
 }
 
 #[tokio::main]
