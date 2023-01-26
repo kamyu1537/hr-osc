@@ -38,6 +38,3 @@ default = ["custom-protocol"]
 # this feature is used used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
-
-[patch.crates-io]
-winres = { git = "https://github.com/Nilstrieb/winres", branch = "linking-flags" }

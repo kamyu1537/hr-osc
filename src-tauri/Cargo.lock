@@ -3656,11 +3656,11 @@ checksum = "447660ad36a13288b1db4d4248e857b510e8c3a225c822ba4fb748c0aafecffd"
 
 [[package]]
 name = "winres"
-version = "0.1.11"
-source = "git+https://github.com/Nilstrieb/winres?branch=linking-flags#c839134b5f78d7dd0f5c8211ec6c7b675b0026fc"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b68db261ef59e9e52806f688020631e987592bd83619edccda9c47d42cde4f6c"
 dependencies = [
  "toml",
- "version_check",
 ]
 
 [[package]]
