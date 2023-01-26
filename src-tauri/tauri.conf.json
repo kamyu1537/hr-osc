@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "hr-osc",
-    "version": "0.2.2"
+    "version": "0.2.3"
   },
   "tauri": {
     "allowlist": {
@@ -34,7 +34,7 @@
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "kamyu",
       "deb": {
         "depends": []
       },
@@ -55,7 +55,11 @@
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "timestampUrl": "",
+        "webviewInstallMode": {
+          "silent": true,
+          "type": "embedBootstrapper"
+        }
       }
     },
     "security": {

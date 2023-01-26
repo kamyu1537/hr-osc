@@ -3,33 +3,11 @@
     windows_subsystem = "windows"
 )]
 
-#[macro_use]
-extern crate lazy_static;
+mod osc;
+pub use osc::*;
 
-use rosc::encoder;
-use rosc::{OscMessage, OscPacket, OscType};
-use std::net::UdpSocket;
-
-lazy_static! {
-    static ref SOCKET: UdpSocket = UdpSocket::bind("127.0.0.1:0").unwrap();
-}
-
-fn encode_message(msg: OscMessage) -> Option<Vec<u8>> {
-    match encoder::encode(&OscPacket::Message(msg)) {
-        Ok(buf) => Some(buf),
-        Err(_) => None,
-    }
-}
-
-fn send_osc_message(addr: &str, msg_buf: Option<Vec<u8>>) {
-    match msg_buf {
-        Some(buf) => match SOCKET.send_to(&buf, addr) {
-            Ok(_) => println!("Sent OSC message to {}", addr),
-            Err(err) => println!("Error sending OSC message: {}", err),
-        },
-        None => println!("Error encoding OSC message"),
-    }
-}
+use rosc::{OscMessage, OscType};
+use tauri_plugin_log::LogTarget;
 
 #[tauri::command]
 fn send_float(addr: &str, path: &str, value: f32) {
@@ -56,6 +34,11 @@ fn send_bool(addr: &str, path: &str, value: bool) {
 #[tokio::main]
 async fn main() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![send_float, send_bool])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
