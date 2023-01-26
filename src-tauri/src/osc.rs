@@ -17,7 +17,7 @@ pub fn send_osc_message(addr: &str, msg_buf: Option<Vec<u8>>) {
     match msg_buf {
         Some(buf) => match SOCKET.send_to(&buf, addr) {
             Ok(_) => info!("OSC message sent"),
-            Err(_) => error!("Error sending OSC message"),
+            Err(err) => error!("Error sending OSC message: {} / {}", addr, err),
         },
         None => error!("Error encoding OSC message"),
     }
