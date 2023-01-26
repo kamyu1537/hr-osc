@@ -1,13 +1,14 @@
 #![cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
+all(not(debug_assertions), target_os = "windows"),
+windows_subsystem = "windows"
 )]
-
-mod osc;
-pub use osc::*;
 
 use rosc::{OscMessage, OscType};
 use tauri_plugin_log::LogTarget;
+
+pub use osc::*;
+
+mod osc;
 
 #[tauri::command]
 fn send_float(addr: &str, path: &str, value: f32) {
