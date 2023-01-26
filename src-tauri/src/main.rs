@@ -1,6 +1,6 @@
 #![cfg_attr(
-all(not(debug_assertions), target_os = "windows"),
-windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 
 use rosc::{OscMessage, OscType};
@@ -12,24 +12,22 @@ mod osc;
 
 #[tauri::command]
 fn send_float(addr: &str, path: &str, value: f32) {
-    send_osc_message(
-        addr,
-        encode_message(OscMessage {
-            addr: path.to_string(),
-            args: vec![OscType::Float(value)],
-        }),
-    )
+    let osc_message = OscMessage {
+        addr: path.to_owned(),
+        args: vec![OscType::Float(value)],
+    };
+
+    send_osc_message(addr, osc_message)
 }
 
 #[tauri::command]
 fn send_bool(addr: &str, path: &str, value: bool) {
-    send_osc_message(
-        addr,
-        encode_message(OscMessage {
-            addr: path.to_string(),
-            args: vec![OscType::Bool(value)],
-        }),
-    )
+    let osc_message = OscMessage {
+        addr: path.to_owned(),
+        args: vec![OscType::Bool(value)],
+    };
+
+    send_osc_message(addr, osc_message)
 }
 
 #[tokio::main]
