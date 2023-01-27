@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { sendOscBool, sendOscFloat } from '../lib/osc';
-import { getWebSocketUrl } from '../lib/stromno';
 import { useConfig } from '../lib/states';
+import { getWebSocketUrl } from '../lib/stromno';
 
 type HeartRateData = {
   data: {
@@ -65,7 +65,7 @@ const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () 
 
         timeout = setTimeout(() => {
           disconnected();
-        }, config.stromno_timeout * 1000);
+        }, config.connected_timeout * 1000);
       };
 
       socket.onopen = () => {

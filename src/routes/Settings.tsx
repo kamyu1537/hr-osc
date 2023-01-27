@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import General from '../components/settings/General';
+import Http from '../components/settings/Http';
 import OSC from '../components/settings/OSC';
 import Parameters from '../components/settings/Parameters';
 import Stromno from '../components/settings/Stromno';
@@ -6,8 +8,16 @@ import { cn } from '../lib/utils';
 
 const settings = [
   {
+    label: 'General',
+    component: <General />,
+  },
+  {
     label: 'Stromno',
     component: <Stromno />,
+  },
+  {
+    label: 'HTTP',
+    component: <Http />,
   },
   {
     label: 'OSC',

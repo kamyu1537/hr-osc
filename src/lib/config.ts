@@ -3,8 +3,6 @@ import { useConfig } from './states';
 
 export const defaultConfig: IConfig = {
   server_type: 'stromno',
-
-  http_server: false,
   http_server_port: 8080,
   stromno_widget_id: '',
 
@@ -72,10 +70,7 @@ export async function saveConfig(config: IConfig) {
 
 export interface IConfig {
   server_type: 'http' | 'stromno';
-
-  http_server: boolean;
   http_server_port: number;
-
   stromno_widget_id: string;
 
   connected_timeout: number;
