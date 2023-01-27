@@ -24,7 +24,7 @@ const Http = () => {
           startHttpServer(config || defaultConfig);
         }}
       >
-        Start Server
+        Server Restart
       </button>
     </div>
   );

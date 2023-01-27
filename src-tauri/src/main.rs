@@ -38,6 +38,11 @@ fn start_http_server(port: u16) {
     });
 }
 
+#[tauri::command]
+fn stop_http_server() {
+    http_server::stop_server();
+}
+
 #[tokio::main]
 async fn main() {
     tauri::Builder::default()
@@ -49,7 +54,8 @@ async fn main() {
         .invoke_handler(tauri::generate_handler![
             send_float,
             send_bool,
-            start_http_server
+            start_http_server,
+            stop_http_server
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
