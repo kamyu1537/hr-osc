@@ -8,6 +8,7 @@ use tauri_plugin_log::LogTarget;
 
 pub use osc::*;
 
+mod http_server;
 mod osc;
 
 #[tauri::command]
@@ -30,6 +31,11 @@ fn send_bool(addr: &str, path: &str, value: bool) {
     send_osc_message(addr, osc_message)
 }
 
+#[tauri::command]
+async fn start_http_server(port: u16) {
+    http_server::start_server(port).await;
+}
+
 #[tokio::main]
 async fn main() {
     tauri::Builder::default()
@@ -38,7 +44,11 @@ async fn main() {
                 .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![send_float, send_bool])
+        .invoke_handler(tauri::generate_handler![
+            send_float,
+            send_bool,
+            start_http_server
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

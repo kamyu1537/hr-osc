@@ -2,13 +2,17 @@ import { BaseDirectory, createDir, exists, readTextFile, writeTextFile } from '@
 import { useConfig } from './states';
 
 export const defaultConfig: IConfig = {
-  stromno_widget_id: '',
-  stromno_timeout: 10,
+  server_type: 'stromno',
 
-  max_heart_rate: 200,
+  http_server: false,
+  http_server_port: 8080,
+  stromno_widget_id: '',
 
   osc_path_connected: '/avatar/parameters/hr_connected',
   osc_path_percent: '/avatar/parameters/hr_percent',
+
+  connected_timeout: 10,
+  max_heart_rate: 200,
 
   osc_client_host: '127.0.0.1',
   osc_client_port: 9000,
@@ -67,9 +71,14 @@ export async function saveConfig(config: IConfig) {
 }
 
 export interface IConfig {
-  stromno_widget_id: string;
-  stromno_timeout: number;
+  server_type: 'http' | 'stromno';
 
+  http_server: boolean;
+  http_server_port: number;
+
+  stromno_widget_id: string;
+
+  connected_timeout: number;
   max_heart_rate: number;
 
   osc_path_connected: string;
