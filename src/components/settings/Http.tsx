@@ -18,7 +18,7 @@ const Http = () => {
       {serverPort.component}
 
       <button
-        className="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded-md hover:text-yellow-400 transition-colors"
+        className="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded-md hover:text-cyan-400 transition-colors"
         onClick={() => {
           console.info('http server start');
           startHttpServer(config || defaultConfig);

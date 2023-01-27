@@ -1,6 +1,5 @@
 import useInput from '../../hooks/useInput';
 import { defaultConfig, saveConfig } from '../../lib/config';
-import { startHttpServer } from '../../lib/http_server';
 import { useConfig } from '../../lib/states';
 
 const Stromno = () => {
@@ -14,11 +13,11 @@ const Stromno = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-sm leading-3">Stromno widget:</div>
+      <div className="text-sm leading-3">Widget Id:</div>
       {widget.component}
 
       <button
-        className="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded-md hover:text-yellow-400 transition-colors"
+        className="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded-md hover:text-cyan-400 transition-colors"
         onClick={() => {
           console.info('reconnect request!');
           saveConfig({ ...(config || defaultConfig) }).then();

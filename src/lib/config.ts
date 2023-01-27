@@ -2,7 +2,7 @@ import { BaseDirectory, createDir, exists, readTextFile, writeTextFile } from '@
 import { useConfig } from './states';
 
 export const defaultConfig: IConfig = {
-  server_type: 'stromno',
+  service_type: 'stromno',
   http_server_port: 8080,
   stromno_widget_id: '',
 
@@ -69,7 +69,7 @@ export async function saveConfig(config: IConfig) {
 }
 
 export interface IConfig {
-  server_type: 'http' | 'stromno';
+  service_type: 'http' | 'stromno';
   http_server_port: number;
   stromno_widget_id: string;
 
