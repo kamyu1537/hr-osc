@@ -12,6 +12,12 @@ thread_local! {
 }
 
 pub fn stop_server() {
+    let check_stop = SERVER_STOP_STATUS.with(|server_stop_status| *server_stop_status.borrow());
+    if check_stop {
+        debug!("Already waiting for HTTP server to stop.");
+        return;
+    }
+
     debug!("Stopping HTTP server...");
 
     HTTP_SHUTDOWN_SENDER.with(|sender| match sender.borrow_mut().take() {
