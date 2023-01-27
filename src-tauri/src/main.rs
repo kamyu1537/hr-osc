@@ -32,8 +32,10 @@ fn send_bool(addr: &str, path: &str, value: bool) {
 }
 
 #[tauri::command]
-async fn start_http_server(port: u16) {
-    http_server::start_server(port).await;
+fn start_http_server(port: u16) {
+    tokio::spawn(async move {
+        http_server::start_server(port).await;
+    });
 }
 
 #[tokio::main]
