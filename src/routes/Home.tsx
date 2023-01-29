@@ -1,5 +1,4 @@
 import { HeartIcon } from '@heroicons/react/24/solid';
-import { useState } from 'react';
 import { cn } from '../lib/utils';
 
 const Home = ({ connected, heartRate }: { connected: boolean; heartRate: number }) => {

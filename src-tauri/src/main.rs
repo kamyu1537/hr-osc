@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+use http_server::{HTTP_HEARTRATE, LAST_RECEIVED};
 use rosc::{OscMessage, OscType};
 use tauri_plugin_log::LogTarget;
 
@@ -33,14 +34,22 @@ fn send_bool(addr: &str, path: &str, value: bool) {
 
 #[tauri::command]
 fn start_http_server(port: u16) {
-    tokio::spawn(async move {
-        http_server::start_server(port).await;
-    });
+    http_server::start_server(port)
 }
 
 #[tauri::command]
 fn stop_http_server() {
     http_server::stop_server();
+}
+
+#[tauri::command]
+fn get_http_heartrate() -> i32 {
+    unsafe { HTTP_HEARTRATE }
+}
+
+#[tauri::command]
+fn get_http_update_time() -> i64 {
+    unsafe { LAST_RECEIVED }
 }
 
 #[tokio::main]
@@ -55,7 +64,9 @@ async fn main() {
             send_float,
             send_bool,
             start_http_server,
-            stop_http_server
+            stop_http_server,
+            get_http_heartrate,
+            get_http_update_time,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

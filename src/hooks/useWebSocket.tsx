@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { sendOscBool, sendOscFloat } from '../lib/osc';
+import { connected, disconnected, getTimeoutSeconds, sendOscHeartRate } from '../lib/service';
 import { useConfig } from '../lib/states';
 import { getWebSocketUrl } from '../lib/stromno';
 
@@ -36,36 +36,22 @@ const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () 
 
       socket = new WebSocket(wsUrl);
 
-      const connected = () => {
-        console.info('connected');
-        onConnected?.();
-        clearTimeout(timeout);
-        sendOscBool(config, config.osc_path_connected, true);
-      };
-
-      const disconnected = () => {
-        console.info('disconnected');
-        onDisconnect?.();
-        clearTimeout(timeout);
-        sendOscBool(config, config.osc_path_connected, false);
-      };
-
-      socket.onmessage = (event: MessageEvent<string>) => {
+      socket.onmessage = async (event: MessageEvent<string>) => {
         if (config == null) return;
         console.info('WS: message', event.data);
 
-        connected();
+        connected(onConnected);
         try {
           const json = JSON.parse(event.data) as HeartRateData;
           onMessage?.(json.data.heartRate);
-          sendOscFloat(config, config.osc_path_percent, json.data.heartRate / config.max_heart_rate);
+          sendOscHeartRate(json.data.heartRate);
         } catch (err) {
           console.error(err);
         }
 
         timeout = setTimeout(() => {
-          disconnected();
-        }, config.connected_timeout * 1000);
+          disconnected(onDisconnect);
+        }, await getTimeoutSeconds());
       };
 
       socket.onopen = () => {

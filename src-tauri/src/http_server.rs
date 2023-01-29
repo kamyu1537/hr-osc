@@ -1,104 +1,113 @@
-use std::{cell::RefCell, net::SocketAddr};
+use axum::{
+    routing::{get, post},
+    Router,
+};
+use hyper::Uri;
+use std::{cell::RefCell, net::SocketAddr, str::FromStr, time::UNIX_EPOCH};
 
-use axum::{routing::get, Router, Server};
-
-use log::{debug, error};
-use tokio::sync::oneshot::{Receiver, Sender};
+pub static mut HTTP_HEARTRATE: i32 = 0;
+pub static mut LAST_RECEIVED: i64 = 0;
 
 thread_local! {
-    static HTTP_SHUTDOWN_SENDER: RefCell<Option<Sender<()>>> = RefCell::new(None);
-    static SERVER_STOP_RECEIVER: RefCell<Option<Receiver<()>>> = RefCell::new(None);
-    static SERVER_STOP_STATUS: RefCell<bool> = RefCell::new(false);
+    static LAST_PORT: RefCell<u16> = RefCell::new(0);
+    static SHUTDOWN: RefCell<Option<tokio::sync::oneshot::Sender<()>>> = RefCell::new(None);
+    static SERVER_HANDLE: RefCell<Option<tauri::async_runtime::TokioJoinHandle<()>>> = RefCell::new(None);
+
+    // pub static HTTP_HEARTRATE: RefCell<i32> = RefCell::new(0);
+    // pub static LAST_RECEIVED: RefCell<i64> = RefCell::new(0);
 }
 
 pub fn stop_server() {
-    let check_stop = SERVER_STOP_STATUS.with(|server_stop_status| *server_stop_status.borrow());
-    if check_stop {
-        debug!("Already waiting for HTTP server to stop.");
-        return;
-    }
+    log::debug!("stop_server");
 
-    debug!("Stopping HTTP server...");
+    SERVER_HANDLE.with(|server_handle| {
+        if let Some(handle) = server_handle.borrow_mut().take() {
+            log::debug!("stopping server");
 
-    HTTP_SHUTDOWN_SENDER.with(|sender| match sender.borrow_mut().take() {
-        Some(sender) => {
-            if let Err(e) = sender.send(()) {
-                error!("Failed to send HTTP shutdown signal: {:?}", e);
-            }
+            SHUTDOWN.with(|shutdown| {
+                if let Some(tx) = shutdown.borrow_mut().take() {
+                    tx.send(()).unwrap();
+                }
+            });
+
+            handle.abort();
+            tokio::spawn(async {
+                let port = LAST_PORT.with(|last_port| *last_port.borrow());
+                if port != 0 {
+                    if let Ok(req_uri) = Uri::from_str(&format!("http://localhost:{}", port)) {
+                        let client = hyper::client::Client::new();
+                        client.get(req_uri).await.ok();
+                    }
+                }
+            });
         }
-        None => debug!("No HTTP server to stop."),
     });
 }
 
-pub async fn start_server(port: u16) {
+pub fn start_server(port: u16) {
     stop_server();
-    debug!("=======================================");
 
-    let check_stop = SERVER_STOP_STATUS.with(|server_stop_status| *server_stop_status.borrow());
-    if check_stop {
-        debug!("Already waiting for HTTP server to stop.");
-        return;
-    }
+    log::debug!("start_server {}", port);
+    LAST_PORT.with(move |last_port| {
+        *last_port.borrow_mut() = port;
+    });
 
-    if let Some(receiver) =
-        SERVER_STOP_RECEIVER.with(|server_stop_receiver| server_stop_receiver.borrow_mut().take())
-    {
-        debug!("Waiting for HTTP server to stop... {receiver:?}");
+    let handle = tokio::task::spawn(async move {
+        let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-        SERVER_STOP_STATUS.with(|server_stop_status| {
-            *server_stop_status.borrow_mut() = true;
+        let app = Router::new()
+            .route("/", get(root))
+            .route("/", post(post_heartrate));
+
+        log::debug!("listening on {}", addr);
+
+        let (tx, rx) = tokio::sync::oneshot::channel::<()>();
+
+        SHUTDOWN.with(move |shutdown| {
+            *shutdown.borrow_mut() = Some(tx);
         });
 
-        receiver.await.ok();
-    }
-
-    let (stop_sender, stop_receiver) = tokio::sync::oneshot::channel::<()>();
-    SERVER_STOP_RECEIVER.with(move |receiver| {
-        debug!("Setting HTTP stop receiver...");
-        *receiver.borrow_mut() = Some(stop_receiver);
+        drop(
+            axum::Server::bind(&addr)
+                .serve(app.into_make_service())
+                .with_graceful_shutdown(async move {
+                    rx.await.ok();
+                })
+                .await
+                .unwrap(),
+        );
     });
 
-    debug!("=======================================");
-    debug!("Starting HTTP server on port {}...", port);
-
-    // router.
-    let app = Router::new().route("/", get(root));
-
-    // server binding
-    let addr = SocketAddr::from(([0, 0, 0, 0], port));
-    let server = Server::bind(&addr).serve(app.into_make_service());
-
-    // graceful shutdown
-    let (shutdown_sender, shutdown_receiver) = tokio::sync::oneshot::channel::<()>();
-    let graceful = server.with_graceful_shutdown(async {
-        shutdown_receiver.await.ok();
-        debug!("HTTP stop signal received.");
+    SERVER_HANDLE.with(move |server_handle| {
+        *server_handle.borrow_mut() = Some(handle);
     });
-
-    // set shutdown sender
-    HTTP_SHUTDOWN_SENDER.with(move |sender| {
-        debug!("Setting HTTP shutdown sender...");
-        *sender.borrow_mut() = Some(shutdown_sender);
-    });
-
-    debug!("HTTP server started on port {}", port);
-    debug!("=======================================");
-
-    match graceful.await {
-        Ok(_) => {
-            debug!("HTTP server stopped.");
-            SERVER_STOP_STATUS.with(|server_stop_status| {
-                *server_stop_status.borrow_mut() = false;
-            });
-
-            if let Err(e) = stop_sender.send(()) {
-                error!("Failed to send stop signal: {:?}", e);
-            }
-        }
-        Err(e) => error!("HTTP server error: {:?}", e),
-    }
 }
 
 async fn root() -> &'static str {
-    "Hello, world!"
+    "hr-osc http server"
+}
+
+async fn post_heartrate(payload: String) -> &'static str {
+    log::debug!("post_heartrate {}", payload);
+
+    match i32::from_str(&payload) {
+        Ok(heartrate) => {
+            log::debug!("heartrate {}", heartrate);
+
+            unsafe {
+                HTTP_HEARTRATE = heartrate;
+                LAST_RECEIVED = std::time::SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis() as i64;
+            }
+
+            "ok"
+        }
+        Err(err) => {
+            log::error!("error parsing heartrate: {}", err);
+
+            "error parsing heartrate"
+        }
+    }
 }
