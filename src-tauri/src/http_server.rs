@@ -44,8 +44,6 @@ pub fn start_server(port: u16) {
     log::debug!("start_server {}", port);
 
     tokio::task::spawn(async move {
-        tokio::task::yield_now().await;
-
         // wait SERVER_RUNNING to be true
         while *HTTP_SERVER_RUNNING
             .lock()
