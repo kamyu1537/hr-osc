@@ -2,84 +2,98 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use hyper::Uri;
-use std::{cell::RefCell, net::SocketAddr, str::FromStr, time::UNIX_EPOCH};
+use std::{
+    borrow::BorrowMut, cell::RefCell, net::SocketAddr, str::FromStr, sync::Mutex, time::UNIX_EPOCH,
+};
+use tokio::sync::oneshot::Sender;
 
-pub static mut HTTP_HEARTRATE: i32 = 0;
-pub static mut LAST_RECEIVED: i64 = 0;
+pub static HTTP_HEARTRATE: Mutex<RefCell<i32>> = Mutex::new(RefCell::new(0));
+pub static HTTP_HEARTRATE_UPDATE: Mutex<RefCell<i64>> = Mutex::new(RefCell::new(0));
 
-thread_local! {
-    static LAST_PORT: RefCell<u16> = RefCell::new(0);
-    static SHUTDOWN: RefCell<Option<tokio::sync::oneshot::Sender<()>>> = RefCell::new(None);
-    static SERVER_HANDLE: RefCell<Option<tauri::async_runtime::TokioJoinHandle<()>>> = RefCell::new(None);
-
-    // pub static HTTP_HEARTRATE: RefCell<i32> = RefCell::new(0);
-    // pub static LAST_RECEIVED: RefCell<i64> = RefCell::new(0);
-}
+static HTTP_SHUTDOWN: Mutex<RefCell<Option<Sender<()>>>> = Mutex::new(RefCell::new(None));
+static HTTP_SERVER_RUNNING: Mutex<RefCell<bool>> = Mutex::new(RefCell::new(false));
 
 pub fn stop_server() {
+    if !(*HTTP_SERVER_RUNNING
+        .lock()
+        .unwrap()
+        .borrow_mut()
+        .clone()
+        .borrow_mut())
+    {
+        log::debug!("server not running");
+        return;
+    }
+
     log::debug!("stop_server");
+    match HTTP_SHUTDOWN.lock() {
+        Ok(mut shutdown) => {
+            if let Some(tx) = shutdown.borrow_mut().take() {
+                tx.send(()).ok();
 
-    SERVER_HANDLE.with(|server_handle| {
-        if let Some(handle) = server_handle.borrow_mut().take() {
-            log::debug!("stopping server");
-
-            SHUTDOWN.with(|shutdown| {
-                if let Some(tx) = shutdown.borrow_mut().take() {
-                    tx.send(()).unwrap();
-                }
-            });
-
-            handle.abort();
-            tokio::spawn(async {
-                let port = LAST_PORT.with(|last_port| *last_port.borrow());
-                if port != 0 {
-                    if let Ok(req_uri) = Uri::from_str(&format!("http://localhost:{}", port)) {
-                        let client = hyper::client::Client::new();
-                        client.get(req_uri).await.ok();
-                    }
-                }
-            });
+                log::debug!("SHUTDOWN.lock() ok");
+            } else {
+                log::debug!("SHUTDOWN.lock() already stopped")
+            }
         }
-    });
+        Err(e) => log::error!("SHUTDOWN.lock() error: {}", e),
+    }
 }
 
 pub fn start_server(port: u16) {
-    stop_server();
-
     log::debug!("start_server {}", port);
-    LAST_PORT.with(move |last_port| {
-        *last_port.borrow_mut() = port;
-    });
 
-    let handle = tokio::task::spawn(async move {
+    tokio::task::spawn(async move {
+        tokio::task::yield_now().await;
+
+        // wait SERVER_RUNNING to be true
+        while *HTTP_SERVER_RUNNING
+            .lock()
+            .unwrap()
+            .borrow_mut()
+            .clone()
+            .borrow_mut()
+        {
+            stop_server();
+            log::debug!("waiting for server to stop (1000ms)...");
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        }
+
+        HTTP_SERVER_RUNNING
+            .lock()
+            .unwrap()
+            .borrow_mut()
+            .replace(true);
+
+        log::debug!("preparing server");
         let addr = SocketAddr::from(([0, 0, 0, 0], port));
-
         let app = Router::new()
             .route("/", get(root))
             .route("/", post(post_heartrate));
 
-        log::debug!("listening on {}", addr);
-
         let (tx, rx) = tokio::sync::oneshot::channel::<()>();
+        log::debug!("listening on {}", addr);
+        axum::Server::bind(&addr)
+            .serve(app.into_make_service())
+            .with_graceful_shutdown(async move {
+                if let Ok(mut shutdown) = HTTP_SHUTDOWN.lock() {
+                    shutdown.borrow_mut().replace(Some(tx));
+                }
 
-        SHUTDOWN.with(move |shutdown| {
-            *shutdown.borrow_mut() = Some(tx);
-        });
+                log::debug!("server started");
+                rx.await.ok();
 
-        drop(
-            axum::Server::bind(&addr)
-                .serve(app.into_make_service())
-                .with_graceful_shutdown(async move {
-                    rx.await.ok();
-                })
-                .await
-                .unwrap(),
-        );
-    });
+                HTTP_SERVER_RUNNING
+                    .lock()
+                    .unwrap()
+                    .borrow_mut()
+                    .replace(false);
+                log::debug!("server stopped");
+            })
+            .await
+            .ok();
 
-    SERVER_HANDLE.with(move |server_handle| {
-        *server_handle.borrow_mut() = Some(handle);
+        log::debug!("server stopped");
     });
 }
 
@@ -94,12 +108,31 @@ async fn post_heartrate(payload: String) -> &'static str {
         Ok(heartrate) => {
             log::debug!("heartrate {}", heartrate);
 
-            unsafe {
-                HTTP_HEARTRATE = heartrate;
-                LAST_RECEIVED = std::time::SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap()
-                    .as_millis() as i64;
+            match HTTP_HEARTRATE.lock() {
+                Ok(mut http_heartrate) => {
+                    http_heartrate.borrow_mut().replace(heartrate);
+                }
+                Err(err) => {
+                    log::error!("error locking http_heartrate: {}", err);
+                }
+            }
+
+            match HTTP_HEARTRATE_UPDATE.lock() {
+                Ok(mut http_heartrate_update) => {
+                    match std::time::SystemTime::now().duration_since(UNIX_EPOCH) {
+                        Ok(n) => {
+                            http_heartrate_update
+                                .borrow_mut()
+                                .replace(n.as_millis() as i64);
+                        }
+                        Err(err) => {
+                            log::error!("error getting system time: {}", err);
+                        }
+                    }
+                }
+                Err(err) => {
+                    log::error!("error locking http_heartrate_update: {}", err);
+                }
             }
 
             "ok"
