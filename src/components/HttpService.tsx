@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getHttpHeartRate, getHttpHeartRateUpdateTime, startHttpServer, stopHttpServer } from '../lib/http_server';
+import { getHttpHeartRate, getHttpHeartRateUpdateTime, startHttpServer } from '../lib/http_server';
 import { connected, disconnected, getTimeoutSeconds, sendOscHeartRate, ServiceProps } from '../lib/service';
 import { useConfig } from '../lib/states';
 
@@ -61,7 +61,6 @@ const HttpService = ({ setConnected, setHeartRate }: ServiceProps) => {
 
     return () => {
       if (start) {
-        stopHttpServer();
         clearInterval(interval);
       }
     };
