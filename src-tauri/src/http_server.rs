@@ -49,42 +49,36 @@ pub fn start_server(port: u16) {
 
         let (tx, rx) = tokio::sync::oneshot::channel::<()>();
 
-        let server = async move {
-            let addr = SocketAddr::from(([0, 0, 0, 0], port));
-            let app = Router::new()
-                .route("/", get(root))
-                .route("/", post(post_heartrate));
+        let addr = SocketAddr::from(([0, 0, 0, 0], port));
+        let app = Router::new()
+            .route("/", get(root))
+            .route("/", post(post_heartrate));
 
-            log::debug!("listening on {}", addr);
+        log::debug!("listening on {}", addr);
 
-            let mut print_err = true;
-            let serve = loop {
-                match axum::Server::try_bind(&addr) {
-                    Ok(bind) => {
-                        break bind.serve(app.into_make_service());
-                    }
-                    Err(err) => {
-                        if print_err {
-                            println!("error binding server: {}", err);
-                            print_err = false;
-                        }
+        let mut print_err = true;
+        let serve = loop {
+            match axum::Server::try_bind(&addr) {
+                Ok(bind) => {
+                    break bind.serve(app.into_make_service());
+                }
+                Err(err) => {
+                    if print_err {
+                        println!("error binding server: {}", err);
+                        print_err = false;
                     }
                 }
-            };
-
-            drop(func_mutex);
-            serve.await.expect("server error");
+            }
         };
 
-        let receive = async {
-            HTTP_SERVER_TX.lock().unwrap().replace(Some(tx));
-            rx.await.ok();
-        };
-
-        tokio::select! {
-            _ = server => {}
-            _ = receive => {}
-        }
+        drop(func_mutex);
+        serve
+            .with_graceful_shutdown(async {
+                HTTP_SERVER_TX.lock().unwrap().replace(Some(tx));
+                rx.await.ok();
+            })
+            .await
+            .expect("server error");
 
         log::debug!("server stopped");
         drop(stop_mutex);
