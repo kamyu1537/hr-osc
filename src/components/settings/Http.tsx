@@ -15,7 +15,7 @@ const Http = () => {
       <div className="text-sm leading-3">HTTP Server Port:</div>
       {serverPort.component}
 
-      <div className="text-sm leading-3 text-gray-500">Apply the changed port, hr-osc must be relaunched.</div>
+      <div className="text-sm leading-3 text-gray-500">hr-osc must be restarted for the changed ports to take effect.</div>
 
       <button
         className="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded-md hover:text-cyan-400 transition-colors"
@@ -23,7 +23,7 @@ const Http = () => {
           relaunch();
         }}
       >
-        Relaunch
+        Restart
       </button>
     </div>
   );
