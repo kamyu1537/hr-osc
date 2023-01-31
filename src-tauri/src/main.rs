@@ -38,11 +38,6 @@ fn start_http_server(port: u16) {
 }
 
 #[tauri::command]
-fn stop_http_server() {
-    http_server::stop_server();
-}
-
-#[tauri::command]
 fn get_http_heartrate() -> i32 {
     HTTP_HEARTRATE.lock().unwrap().borrow_mut().clone()
 }
@@ -64,7 +59,6 @@ async fn main() {
             send_float,
             send_bool,
             start_http_server,
-            stop_http_server,
             get_http_heartrate,
             get_http_update_time,
         ])

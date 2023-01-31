@@ -5,93 +5,44 @@ use axum::{
 use std::{
     borrow::BorrowMut, cell::RefCell, net::SocketAddr, str::FromStr, sync::Mutex, time::UNIX_EPOCH,
 };
-use tokio::sync::oneshot::Sender;
 
 pub static HTTP_HEARTRATE: Mutex<RefCell<i32>> = Mutex::new(RefCell::new(0));
 pub static HTTP_HEARTRATE_UPDATE: Mutex<RefCell<i64>> = Mutex::new(RefCell::new(0));
-
-static HTTP_SHUTDOWN: Mutex<RefCell<Option<Sender<()>>>> = Mutex::new(RefCell::new(None));
 static HTTP_SERVER_RUNNING: Mutex<RefCell<bool>> = Mutex::new(RefCell::new(false));
-
-pub fn stop_server() {
-    if !(*HTTP_SERVER_RUNNING
-        .lock()
-        .unwrap()
-        .borrow_mut()
-        .clone()
-        .borrow_mut())
-    {
-        log::debug!("server not running");
-        return;
-    }
-
-    log::debug!("stop_server");
-    match HTTP_SHUTDOWN.lock() {
-        Ok(mut shutdown) => {
-            if let Some(tx) = shutdown.borrow_mut().take() {
-                tx.send(()).ok();
-
-                log::debug!("SHUTDOWN.lock() ok");
-            } else {
-                log::debug!("SHUTDOWN.lock() already stopped")
-            }
-        }
-        Err(e) => log::error!("SHUTDOWN.lock() error: {}", e),
-    }
-}
 
 pub fn start_server(port: u16) {
     log::debug!("start_server {}", port);
 
+    if *HTTP_SERVER_RUNNING
+        .lock()
+        .unwrap()
+        .borrow_mut()
+        .clone()
+        .borrow_mut()
+    {
+        return;
+    }
+
+    HTTP_SERVER_RUNNING
+        .lock()
+        .unwrap()
+        .borrow_mut()
+        .replace(true);
+
     tokio::task::spawn(async move {
-        // wait SERVER_RUNNING to be true
-        while *HTTP_SERVER_RUNNING
-            .lock()
-            .unwrap()
-            .borrow_mut()
-            .clone()
-            .borrow_mut()
-        {
-            stop_server();
-            log::debug!("waiting for server to stop (1000ms)...");
-            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
-        }
-
-        HTTP_SERVER_RUNNING
-            .lock()
-            .unwrap()
-            .borrow_mut()
-            .replace(true);
-
         log::debug!("preparing server");
         let addr = SocketAddr::from(([0, 0, 0, 0], port));
         let app = Router::new()
             .route("/", get(root))
             .route("/", post(post_heartrate));
 
-        let (tx, rx) = tokio::sync::oneshot::channel::<()>();
         log::debug!("listening on {}", addr);
-        axum::Server::bind(&addr)
-            .serve(app.into_make_service())
-            .with_graceful_shutdown(async move {
-                if let Ok(mut shutdown) = HTTP_SHUTDOWN.lock() {
-                    shutdown.borrow_mut().replace(Some(tx));
-                }
-
-                log::debug!("server started");
-                rx.await.ok();
-
-                HTTP_SERVER_RUNNING
-                    .lock()
-                    .unwrap()
-                    .borrow_mut()
-                    .replace(false);
-                log::debug!("server stopped");
-            })
-            .await
-            .ok();
-
-        log::debug!("server stopped");
+        drop(
+            axum::Server::bind(&addr)
+                .serve(app.into_make_service())
+                .await
+                .ok(),
+        );
     });
 }
 
