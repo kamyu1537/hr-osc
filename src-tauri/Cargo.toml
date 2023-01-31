@@ -1,8 +1,8 @@
 [package]
 name = "hr-osc-tauri"
 version = "0.0.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Heartrate program for OSC"
+authors = ["Byeon seongun"]
 license = ""
 repository = ""
 edition = "2021"
@@ -24,7 +24,6 @@ log = "0.4.17"
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "dev" }
 axum = "0.6.4"
 hyper = { version = "0.14", features = ["full"] }
-async-shutdown = "0.1.2"
 
 [dependencies.uuid]
 version = "1.2.2"
