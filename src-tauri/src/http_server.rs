@@ -39,11 +39,11 @@ pub fn start_server(port: u16) {
     tokio::spawn(async move {
         log::debug!("=======================================");
 
-        let mutex2 = HTTP_FUNC_MUTEX.lock().await;
+        let func_mutex = HTTP_FUNC_MUTEX.lock().await;
         log::debug!("start_server {}", port);
         stop_server();
 
-        let mutex1 = HTTP_STOP_MUTEX.lock().await;
+        let stop_mutex = HTTP_STOP_MUTEX.lock().await;
 
         log::debug!("preparing server");
 
@@ -72,7 +72,7 @@ pub fn start_server(port: u16) {
                 }
             };
 
-            drop(mutex2);
+            drop(func_mutex);
             serve.await.expect("server error");
         };
 
@@ -87,7 +87,7 @@ pub fn start_server(port: u16) {
         }
 
         log::debug!("server stopped");
-        drop(mutex1);
+        drop(stop_mutex);
     });
 }
 
