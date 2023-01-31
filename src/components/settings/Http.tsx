@@ -1,7 +1,7 @@
-import { relaunch } from '@tauri-apps/api/process';
 import { useState } from 'react';
 import useInput from '../../hooks/useInput';
 import { defaultConfig, saveConfig } from '../../lib/config';
+import { startHttpServer } from '../../lib/http_server';
 import { useConfig } from '../../lib/states';
 
 const Http = () => {
@@ -20,7 +20,8 @@ const Http = () => {
       <button
         className="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded-md hover:text-cyan-400 transition-colors"
         onClick={() => {
-          relaunch();
+          // relaunch();
+          if (config != null) startHttpServer(config);
         }}
       >
         Restart
