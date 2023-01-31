@@ -8,11 +8,10 @@ use std::{
 
 pub static HTTP_HEARTRATE: Mutex<RefCell<i32>> = Mutex::new(RefCell::new(0));
 pub static HTTP_HEARTRATE_UPDATE: Mutex<RefCell<i64>> = Mutex::new(RefCell::new(0));
+
 static HTTP_SERVER_RUNNING: Mutex<RefCell<bool>> = Mutex::new(RefCell::new(false));
 
 pub fn start_server(port: u16) {
-    log::debug!("start_server {}", port);
-
     if *HTTP_SERVER_RUNNING
         .lock()
         .unwrap()
@@ -23,13 +22,14 @@ pub fn start_server(port: u16) {
         return;
     }
 
+    log::debug!("start_server {}", port);
     HTTP_SERVER_RUNNING
         .lock()
         .unwrap()
         .borrow_mut()
         .replace(true);
 
-    tokio::task::spawn(async move {
+    tokio::spawn(async move {
         log::debug!("preparing server");
         let addr = SocketAddr::from(([0, 0, 0, 0], port));
         let app = Router::new()
@@ -37,6 +37,7 @@ pub fn start_server(port: u16) {
             .route("/", post(post_heartrate));
 
         log::debug!("listening on {}", addr);
+
         drop(
             axum::Server::bind(&addr)
                 .serve(app.into_make_service())
