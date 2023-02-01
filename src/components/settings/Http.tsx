@@ -6,7 +6,6 @@ import { useConfig } from '../../lib/states';
 
 const Http = () => {
   const config = useConfig((state) => state.config);
-  const [port, setPort] = useState(config?.http_server_port || 0);
 
   const serverPort = useInput({ placeholder: defaultConfig.http_server_port + '', type: 'number' }, config?.http_server_port, (val) => saveConfig({ ...(config || defaultConfig), http_server_port: val }));
 
@@ -15,16 +14,13 @@ const Http = () => {
       <div className="text-sm leading-3">HTTP Server Port:</div>
       {serverPort.component}
 
-      <div className="text-sm leading-3 text-gray-500">hr-osc must be restarted for the changed ports to take effect.</div>
-
       <button
         className="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded-md hover:text-cyan-400 transition-colors"
         onClick={() => {
-          // relaunch();
           if (config != null) startHttpServer(config);
         }}
       >
-        Restart
+        Restart Server
       </button>
     </div>
   );

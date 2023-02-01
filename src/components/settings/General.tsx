@@ -2,6 +2,7 @@ import useInput from '../../hooks/useInput';
 import useSelect from '../../hooks/useSelect';
 import { defaultConfig, saveConfig } from '../../lib/config';
 import { useConfig } from '../../lib/states';
+import { stopHttpServer } from "../../lib/http_server";
 
 const General = () => {
   const config = useConfig((state) => state.config);
@@ -13,7 +14,12 @@ const General = () => {
       { value: 'http', label: 'HTTP' },
     ],
     config?.service_type,
-    (val) => saveConfig({ ...(config || defaultConfig), service_type: val as 'stromno' | 'http' })
+    (val) => {
+        saveConfig({...(config || defaultConfig), service_type: val as 'stromno' | 'http'})
+        if (val !== 'http') {
+            stopHttpServer();
+        }
+    }
   );
 
   const connectedTimeout = useInput(
