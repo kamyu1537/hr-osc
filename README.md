@@ -1,7 +1,20 @@
-# Tauri + React + Typescript
+# HR-OSC
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Heartrate OSC for VRChat
 
-## Recommended IDE Setup
+## Download
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+[Release](https://github.com/kamyu1537/hr-osc/releases)
+
+## Usage
+
+### VRChat
+- [Notion]()
+
+### Stromno or Pulsoid
+- [Arcalive]()
+
+### HTTP
+```bash
+curl -X POST -d '60' http://localhost:8080
+```
