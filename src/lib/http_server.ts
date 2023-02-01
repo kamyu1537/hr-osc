@@ -5,6 +5,10 @@ export const startHttpServer = (config: IConfig) => {
   invoke('start_http_server', { port: config.http_server_port });
 };
 
+export const stopHttpServer = () => {
+  invoke('stop_http_server');
+}
+
 export const getHttpHeartRate = async () => {
   return (await invoke('get_http_heartrate')) as number;
 };

@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use http_server::{HTTP_HEARTRATE, HTTP_HEARTRATE_UPDATE};
+use http_server::{HTTP_HEARTRATE_RECEIVER};
 use rosc::{OscMessage, OscType};
 use tauri_plugin_log::LogTarget;
 
@@ -38,13 +38,18 @@ fn start_http_server(port: u16) {
 }
 
 #[tauri::command]
-fn get_http_heartrate() -> i32 {
-    HTTP_HEARTRATE.lock().unwrap().borrow_mut().clone()
+async fn stop_http_server() {
+    http_server::stop_server().await;
 }
 
 #[tauri::command]
-fn get_http_update_time() -> i64 {
-    HTTP_HEARTRATE_UPDATE.lock().unwrap().borrow_mut().clone()
+async fn get_http_heartrate() -> i32 {
+    HTTP_HEARTRATE_RECEIVER.get_heartrate().await
+}
+
+#[tauri::command]
+async fn get_http_update_time() -> i64 {
+    HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await
 }
 
 #[tokio::main]
@@ -59,6 +64,7 @@ async fn main() {
             send_float,
             send_bool,
             start_http_server,
+            stop_http_server,
             get_http_heartrate,
             get_http_update_time,
         ])
