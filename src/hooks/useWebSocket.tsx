@@ -12,7 +12,7 @@ type HeartRateData = {
 let timeout: ReturnType<typeof setTimeout>;
 let socket: WebSocket | null = null;
 
-const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void) => {
+const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void) => {
   const config = useConfig((state) => state.config);
 
   useEffect(() => {
@@ -36,15 +36,18 @@ const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () 
 
       socket = new WebSocket(wsUrl);
 
-      socket.onmessage = async (event: MessageEvent<string>) => {
+      const onMessage = async (event: MessageEvent<string>) => {
         if (config == null) return;
         console.info('WS: message', event.data);
+        if (timeout != null) {
+          clearTimeout(timeout);
+        }
 
-        connected(onConnected);
+        await connected(onConnected);
         try {
           const json = JSON.parse(event.data) as HeartRateData;
-          onMessage?.(json.data.heartRate);
-          sendOscHeartRate(json.data.heartRate);
+          onReceiveHeartrate?.(json.data.heartRate);
+          await sendOscHeartRate(json.data.heartRate);
         } catch (err) {
           console.error(err);
         }
@@ -54,18 +57,28 @@ const useWebSocket = (onMessage?: (heartRate: number) => void, onConnected?: () 
         }, await getTimeoutSeconds());
       };
 
-      socket.onopen = () => {
+      const onOpen = () => {
         console.info('WS: open');
       };
 
-      socket.onerror = (error: Event) => {
+      const onError = (error: Event) => {
         console.error('WS: error', error);
       };
 
-      socket.onclose = () => {
+      const onClose = () => {
         console.info('WS: closed');
         disconnected();
+
+        socket?.removeEventListener('open', onOpen);
+        socket?.removeEventListener('error', onError);
+        socket?.removeEventListener('message', onMessage);
+        socket?.removeEventListener('close', onClose);
       };
+
+      socket?.addEventListener('open', onOpen);
+      socket?.addEventListener('error', onError);
+      socket?.addEventListener('message', onMessage);
+      socket?.addEventListener('close', onClose);
     })();
 
     return () => {
