@@ -6,17 +6,17 @@ const Parameters = () => {
   const config = useConfig((state) => state.config);
 
   const connected = useInput(
-    { placeholder: defaultConfig.osc_path_connected + '', type: 'text' },
+    { placeholder: '', type: 'text' },
     config?.osc_path_connected,
     (val) => saveConfig({ ...(config || defaultConfig), osc_path_connected: val })
   );
   const percent = useInput(
-    { placeholder: defaultConfig.osc_path_percent + '', type: 'text' },
+    { placeholder: '', type: 'text' },
     config?.osc_path_percent,
     (val) => saveConfig({ ...(config || defaultConfig), osc_path_percent: val })
   );
   const heartRate = useInput(
-    { placeholder: defaultConfig.max_heart_rate + '', type: 'number' },
+    { placeholder: `(default: ${defaultConfig.max_heart_rate})`, type: 'number' },
     config?.max_heart_rate,
     (val) => saveConfig({ ...(config || defaultConfig), max_heart_rate: val })
   );
