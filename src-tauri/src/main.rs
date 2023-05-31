@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use http_server::{HTTP_HEARTRATE_RECEIVER};
+use http_server::HTTP_HEARTRATE_RECEIVER;
 use rosc::{OscMessage, OscType};
 use tauri_plugin_log::LogTarget;
 
