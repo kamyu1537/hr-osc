@@ -6,6 +6,7 @@ interface IConfigState {
   setConfig: (config: IConfig) => void;
   reconnectRequest: number;
   requestReconnect: () => void;
+  oscFailure: string | null;
 }
 
 export const useConfig = create<IConfigState>((set) => ({
@@ -13,4 +14,5 @@ export const useConfig = create<IConfigState>((set) => ({
   setConfig: (config) => set({ config }),
   reconnectRequest: 0,
   requestReconnect: () => set((state) => ({ reconnectRequest: state.reconnectRequest + 1 })),
+  oscFailure: null,
 }));

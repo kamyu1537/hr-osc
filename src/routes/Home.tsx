@@ -6,6 +6,7 @@ import { IConfig, services } from '../lib/config';
 import { useStrings } from '../lib/i18n';
 import { getAddr } from '../lib/osc';
 import { Failure, heartRatePercent } from '../lib/service';
+import { useConfig } from '../lib/states';
 import { cn } from '../lib/utils';
 
 type HomeProps = {
@@ -43,6 +44,8 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
   const t = useStrings();
   const recovery = useSourceAction();
   const percent = heartRatePercent(heartRate, config.max_heart_rate);
+  const addr = getAddr(config);
+  const oscFailed = useConfig((state) => state.oscFailure) === addr;
 
   return (
     <div className="h-full flex flex-col items-center">
@@ -106,8 +109,8 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
           <span className="text-rose-400">{t.failures[failure]}</span>
         ) : (
           <>
-            <span className="text-neutral-500">OSC</span>{' '}
-            <span className="tabular-nums text-neutral-300">{getAddr(config)}</span>
+            <span className={oscFailed ? 'text-rose-400' : 'text-neutral-500'}>{oscFailed ? t.home.oscFailed : 'OSC'}</span>{' '}
+            <span className={cn('tabular-nums', oscFailed ? 'text-rose-400' : 'text-neutral-300')}>{addr}</span>
           </>
         )}
       </div>

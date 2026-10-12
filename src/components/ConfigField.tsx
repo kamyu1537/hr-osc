@@ -17,9 +17,10 @@ type ConfigFieldProps<K extends FieldKey> = {
   type?: 'text' | 'number';
   hint?: ReactNode;
   prefix?: string;
+  failure?: ErrorKey;
 };
 
-const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hint, prefix }: ConfigFieldProps<K>) => {
+const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hint, prefix, failure }: ConfigFieldProps<K>) => {
   const [raw, setRaw] = useState(() => {
     const stored = String(useConfig.getState().config?.[name] ?? '');
     return prefix && stored.startsWith(prefix) ? stored.slice(prefix.length) : stored;
@@ -54,6 +55,7 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
     }, 500);
   };
 
+  const shownError = error || failure;
   const errorId = `${name}-error`;
   const hintId = `${name}-hint`;
 
@@ -67,16 +69,16 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
         type={type}
         className="input"
         value={raw}
-        aria-invalid={error !== ''}
-        aria-describedby={[error && errorId, hint && hintId].filter(Boolean).join(' ') || undefined}
+        aria-invalid={!!shownError}
+        aria-describedby={[shownError && errorId, hint && hintId].filter(Boolean).join(' ') || undefined}
         onChange={(e) => handleChange(e.target.value)}
       />
-      {(error || hint || status !== 'idle') && (
+      {(shownError || hint || status !== 'idle') && (
         <div className="col-start-2 mt-1 flex min-w-0 items-start">
           <div className="min-w-0">
-            {error && (
+            {shownError && (
               <p id={errorId} className="text-[10px] leading-[13px] text-rose-400">
-                {t.errors[error]}
+                {t.errors[shownError]}
               </p>
             )}
             {hint && (

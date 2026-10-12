@@ -5,6 +5,7 @@ import ConfigField, { Parse } from '../components/ConfigField';
 import { defaultConfig, IConfig, saveConfig, services } from '../lib/config';
 import { stopHttpServer } from '../lib/http_server';
 import { Language, LanguageSetting, Strings, useStrings } from '../lib/i18n';
+import { getAddr } from '../lib/osc';
 import { useConfig } from '../lib/states';
 import useSourceAction from '../hooks/useSourceAction';
 import { cn } from '../lib/utils';
@@ -152,6 +153,7 @@ const SourceAction = () => {
 
 const OscPanel = () => {
   const t = useStrings();
+  const oscFailed = useConfig((state) => state.config != null && state.oscFailure === getAddr(state.config));
 
   return (
     <>
@@ -160,6 +162,7 @@ const OscPanel = () => {
         label={t.settings.host}
         parse={required}
         hint={t.settings.defaultValue(defaultConfig.osc_client_host)}
+        failure={oscFailed ? 'oscHost' : undefined}
       />
       <ConfigField
         name="osc_client_port"

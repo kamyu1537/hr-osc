@@ -18,6 +18,7 @@ const en = {
     disconnected: 'Disconnected',
     restartServer: 'Restart server',
     reconnect: 'Reconnect',
+    oscFailed: "Can't send OSC to",
   },
   failures: {
     noWidgetId: 'No widget ID set',
@@ -51,6 +52,7 @@ const en = {
     seconds: 'Enter a whole number of seconds (1 or more)',
     required: 'Required',
     save: 'Could not save',
+    oscHost: "Can't send to this host",
   },
   about: { support: 'Support the developer' },
 };
@@ -71,6 +73,7 @@ const ko: Strings = {
     disconnected: '연결 안 됨',
     restartServer: '서버 재시작',
     reconnect: '다시 연결',
+    oscFailed: 'OSC 전송 실패',
   },
   failures: {
     noWidgetId: '위젯 ID가 설정되지 않음',
@@ -104,6 +107,7 @@ const ko: Strings = {
     seconds: '1 이상의 정수(초)를 입력하세요',
     required: '필수 항목입니다',
     save: '저장하지 못했습니다',
+    oscHost: '이 호스트로 보낼 수 없습니다',
   },
   about: { support: '개발자 후원하기' },
 };
@@ -122,6 +126,7 @@ const ja: Strings = {
     disconnected: '未接続',
     restartServer: 'サーバー再起動',
     reconnect: '再接続',
+    oscFailed: 'OSC送信失敗',
   },
   failures: {
     noWidgetId: 'ウィジェットIDが未設定です',
@@ -155,6 +160,7 @@ const ja: Strings = {
     seconds: '1以上の整数(秒)を入力してください',
     required: '必須項目です',
     save: '保存できませんでした',
+    oscHost: 'このホストに送信できません',
   },
   about: { support: '開発者を支援する' },
 };
