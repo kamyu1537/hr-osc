@@ -65,7 +65,7 @@ netstat -ano | grep -E ':(1421|18080|19000|9334) ' | grep -E 'LISTENING|^ *UDP'
 
    ```powershell
    $pids = @(Get-NetTCPConnection -State Listen -LocalPort 18080,1421 | ForEach-Object OwningProcess) + @(Get-NetUDPEndpoint -LocalPort 19000 | ForEach-Object OwningProcess)
-   $pids | Sort-Object -Unique | ForEach-Object { $p = Get-CimInstance Win32_Process -Filter "ProcessId=$_"; "$($p.ProcessId) $($p.CreationDate.ToFileTimeUtc())" } | Set-Content "$OUT\pids.txt"
+   & .claude/skills/verify/scripts/processes.ps1 record "$OUT\pids.txt" -ProcessIds $pids
    ```
 
 ## Doctor
@@ -113,14 +113,10 @@ Drive the real path: UI controls through `cdp.mjs`, heart rate through `POST /`.
 
 ## Cleanup
 
-Stop only the processes recorded in `$OUT\pids.txt`, with their children, and only while a process's start time still matches the record: Windows reuses the PID of an exited process. Never match by executable path: the owner's `pnpm tauri dev` from the same checkout runs from the same `target\` directory. PowerShell:
+Stop only the processes recorded in `$OUT\pids.txt`, with their children. Windows reuses the PID of an exited process, so `processes.ps1 stop` opens each process, checks its start time against the record and terminates it through that same handle; children count only when the handle shows them started by that process after it. Never use `taskkill` or match by executable path: the owner's `pnpm tauri dev` from the same checkout runs from the same `target\` directory. PowerShell:
 
 ```powershell
-Get-Content "$OUT\pids.txt" | ForEach-Object {
-  $id, $created = $_ -split ' '
-  $p = Get-CimInstance Win32_Process -Filter "ProcessId=$id"
-  if ($p -and $p.CreationDate.ToFileTimeUtc() -eq [long]$created) { taskkill /PID $id /T /F }
-}
+& .claude/skills/verify/scripts/processes.ps1 stop "$OUT\pids.txt"
 Get-NetTCPConnection -State Listen -LocalPort 1421,18080,9334 -ErrorAction SilentlyContinue
 Get-NetUDPEndpoint -LocalPort 19000 -ErrorAction SilentlyContinue
 ```
