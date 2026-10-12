@@ -1,4 +1,5 @@
 import { HeartIcon } from '@heroicons/react/24/solid';
+import { useLayoutEffect, useRef } from 'react';
 import { IConfig, services } from '../lib/config';
 import { getAddr } from '../lib/osc';
 import { cn } from '../lib/utils';
@@ -11,6 +12,28 @@ type HomeProps = {
 };
 
 const RING_CIRCUMFERENCE = 2 * Math.PI * 16;
+
+const Heartbeat = ({ bpm }: { bpm: number }) => {
+  const ref = useRef<SVGSVGElement>(null);
+  const previousMs = useRef(60000 / bpm);
+  const ms = 60000 / bpm;
+
+  useLayoutEffect(() => {
+    const [beat] = ref.current?.getAnimations() ?? [];
+    if (beat?.currentTime != null) {
+      beat.currentTime = ((Number(beat.currentTime) % previousMs.current) * ms) / previousMs.current;
+    }
+    previousMs.current = ms;
+  }, [ms]);
+
+  return (
+    <HeartIcon
+      ref={ref}
+      style={{ animationDuration: `${ms}ms` }}
+      className="size-8 text-red-400 motion-safe:animate-heartbeat"
+    />
+  );
+};
 
 const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
   const percent = config.max_heart_rate > 0 ? Math.min(1, Math.max(0, heartRate / config.max_heart_rate)) : 0;
@@ -50,7 +73,11 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
           )}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <HeartIcon className={cn('size-8', connected ? 'text-red-400' : 'text-neutral-500')} />
+          {connected && heartRate > 0 ? (
+            <Heartbeat bpm={heartRate} />
+          ) : (
+            <HeartIcon className={cn('size-8', connected ? 'text-red-400' : 'text-neutral-500')} />
+          )}
           <span className={cn('text-[20px] tabular-nums', connected ? 'text-red-400' : 'text-neutral-400')}>
             {heartRate}
           </span>

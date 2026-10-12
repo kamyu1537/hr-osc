@@ -12,6 +12,17 @@
   --color-red-400: #f87171;
   --color-rose-400: #fb7185;
   --color-lime-500: #84cc16;
+
+  --animate-heartbeat: heartbeat 1s ease-out infinite;
+
+  @keyframes heartbeat {
+    12% {
+      scale: 1.12;
+    }
+    30% {
+      scale: 1;
+    }
+  }
 }
 
 @layer base {
