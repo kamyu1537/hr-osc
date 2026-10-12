@@ -137,16 +137,19 @@ function Stop-Tree([IntPtr]$Handle, [int]$ProcessId, [long]$Created) {
         while ((Add-Descendants $tree $seen) -gt 0) { }
     }
     finally {
-        foreach ($node in $tree) {
+        $failures = @()
+        $stopped = foreach ($node in $tree) {
             try {
                 if (-not [VerifyProcess]::HasExited($node.Handle)) {
                     [VerifyProcess]::Kill($node.Handle)
-                    Write-Output "stopped $($node.Id)"
+                    "stopped $($node.Id)"
                 }
             }
-            catch { Write-Warning "cannot stop $($node.Id): $_" -WarningAction Continue }
+            catch { $failures += "cannot stop $($node.Id): $_" }
         }
-        $tree | Select-Object -Skip 1 | ForEach-Object { [VerifyProcess]::Close($_.Handle) }
+        for ($i = 1; $i -lt $tree.Count; $i++) { [VerifyProcess]::Close($tree[$i].Handle) }
+        $stopped
+        foreach ($failure in $failures) { Write-Warning $failure -WarningAction Continue }
     }
 }
 
