@@ -32,13 +32,14 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
       <div className="relative mt-2 size-30">
         <svg viewBox="0 0 36 36" className="absolute inset-0 -rotate-90" aria-hidden="true">
           <circle cx="18" cy="18" r="16" fill="none" strokeWidth="2.5" className="stroke-neutral-900" />
-          {connected && (
+          {connected && percent > 0 && (
             <circle
               cx="18"
               cy="18"
               r="16"
               fill="none"
               strokeWidth="2.5"
+              strokeLinecap="round"
               strokeDasharray={`${percent * RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
               className="stroke-red-400 transition-[stroke-dasharray] duration-500"
             />
