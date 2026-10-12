@@ -1,4 +1,5 @@
 import { getVersion } from '@tauri-apps/api/app';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useEffect, useState } from 'react';
 import semver from 'semver';
 
@@ -42,7 +43,7 @@ const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
   };
 
   const handleClickUpdate = () => {
-    window.open('https://github.com/kamyu1537/hr-osc/releases/latest');
+    openUrl('https://github.com/kamyu1537/hr-osc/releases/latest');
   };
 
   return [

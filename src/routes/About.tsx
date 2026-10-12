@@ -1,4 +1,5 @@
 import { getVersion } from '@tauri-apps/api/app';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useEffect, useState } from 'react';
 import appIcon from '../assets/images/icon.png';
 
@@ -12,11 +13,11 @@ const About = () => {
   }, []);
 
   const handleOpenGithub = () => {
-    window.open('https://github.com/kamyu1537/hr-osc.git');
+    openUrl('https://github.com/kamyu1537/hr-osc.git');
   };
 
   const handleOpenTwitter = (id: string) => {
-    window.open('https://twitter.com/' + id);
+    openUrl('https://twitter.com/' + id);
   };
 
   return (

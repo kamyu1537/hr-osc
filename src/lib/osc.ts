@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api';
+import { invoke } from '@tauri-apps/api/core';
 import { IConfig } from './config';
 
 const getAddr = (config: IConfig) => {

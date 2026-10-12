@@ -5,7 +5,7 @@
 
 use http_server::HTTP_HEARTRATE_RECEIVER;
 use rosc::{OscMessage, OscType};
-use tauri_plugin_log::LogTarget;
+use tauri_plugin_log::{Target, TargetKind};
 
 pub use osc::*;
 
@@ -55,9 +55,16 @@ async fn get_http_update_time() -> i64 {
 #[tokio::main]
 async fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_log::Builder::default()
-                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .targets([
+                    Target::new(TargetKind::LogDir { file_name: None }),
+                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::Webview),
+                ])
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
