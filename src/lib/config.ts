@@ -48,18 +48,6 @@ export async function getConfig() {
 export async function saveConfig(config: IConfig) {
   useConfig.getState().setConfig({ ...config });
   await writeTextFile('data/config.json', JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
-
-  let newConfig = { ...defaultConfig };
-  const read = await readTextFile('data/config.json', { baseDir: BaseDirectory.AppConfig });
-  try {
-    const parse = JSON.parse(read);
-    newConfig = { ...newConfig, ...parse };
-  } catch (err) {
-    console.error(err);
-    await writeDefaultConfig();
-  }
-
-  useConfig.getState().setConfig({ ...newConfig });
 }
 
 export interface IConfig {
