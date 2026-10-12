@@ -144,7 +144,7 @@ function Stop-Tree([IntPtr]$Handle, [int]$ProcessId, [long]$Created) {
                     Write-Output "stopped $($node.Id)"
                 }
             }
-            catch { Write-Warning "cannot stop $($node.Id): $_" }
+            catch { Write-Warning "cannot stop $($node.Id): $_" -WarningAction Continue }
         }
         $tree | Select-Object -Skip 1 | ForEach-Object { [VerifyProcess]::Close($_.Handle) }
     }
