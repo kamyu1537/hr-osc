@@ -1,6 +1,6 @@
 use axum::extract::Request;
 use axum::http::header::CONNECTION;
-use axum::http::HeaderValue;
+use axum::http::{HeaderValue, StatusCode};
 use axum::response::Response;
 use axum::{
     middleware::{self, Next},
@@ -119,26 +119,27 @@ async fn root() -> &'static str {
     "hr-osc http server"
 }
 
-async fn post_heartrate(generation: u64, payload: String) -> &'static str {
-    log::debug!("post_heartrate {}", payload);
-
-    match i32::from_str(&payload) {
-        Ok(heartrate) => {
-            log::debug!("heartrate {}", heartrate);
-            if HTTP_HEARTRATE_RECEIVER
-                .set_heartrate(generation, heartrate)
-                .await
-            {
-                "ok"
-            } else {
-                "server stopped"
-            }
-        }
+async fn post_heartrate(generation: u64, payload: String) -> (StatusCode, &'static str) {
+    let heartrate = match i64::from_str(&payload) {
+        Ok(heartrate) => heartrate,
         Err(err) => {
-            log::error!("error parsing heartrate: {}", err);
-
-            "error parsing heartrate"
+            log::warn!("invalid heartrate body ({} bytes): {}", payload.len(), err);
+            return (StatusCode::BAD_REQUEST, "invalid heartrate");
         }
+    };
+    if !(0..=300).contains(&heartrate) {
+        log::warn!("heartrate out of range: {}", heartrate);
+        return (StatusCode::UNPROCESSABLE_ENTITY, "heartrate out of range");
+    }
+
+    log::debug!("heartrate {}", heartrate);
+    if HTTP_HEARTRATE_RECEIVER
+        .set_heartrate(generation, heartrate as i32)
+        .await
+    {
+        (StatusCode::OK, "ok")
+    } else {
+        (StatusCode::OK, "server stopped")
     }
 }
 
@@ -170,14 +171,19 @@ mod tests {
             .expect("start_server blocked")
             .unwrap();
 
-        let mut client = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
-        client
-            .write_all(b"POST / HTTP/1.1\r\nhost: localhost\r\ncontent-length: 2\r\n\r\n60")
-            .await
-            .unwrap();
-        let mut response = String::new();
-        client.read_to_string(&mut response).await.unwrap();
+        let response = post(port, "60").await;
+        assert!(response.starts_with("HTTP/1.1 200 "), "{response}");
         assert!(response.ends_with("\r\n\r\nok"), "{response}");
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 60);
+
+        for body in ["", "abc", "60.5", "99999999999999999999"] {
+            let response = post(port, body).await;
+            assert!(response.starts_with("HTTP/1.1 400 "), "{body}: {response}");
+        }
+        for body in ["-1", "301", "2147483647"] {
+            let response = post(port, body).await;
+            assert!(response.starts_with("HTTP/1.1 422 "), "{body}: {response}");
+        }
         assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 60);
 
         let mut stale = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
