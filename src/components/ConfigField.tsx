@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { CheckIcon, ExclamationCircleIcon } from '@heroicons/react/16/solid';
+import { ReactNode, useRef, useState } from 'react';
 import { defaultConfig, IConfig, saveConfig } from '../lib/config';
 import { useConfig } from '../lib/states';
 
@@ -11,7 +12,7 @@ type ConfigFieldProps<K extends FieldKey> = {
   label: string;
   parse: Parse<IConfig[K]>;
   type?: 'text' | 'number';
-  hint?: string;
+  hint?: ReactNode;
   prefix?: string;
 };
 
@@ -53,15 +54,10 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
   const hintId = `${name}-hint`;
 
   return (
-    <div>
-      <div className="mb-0.5 flex justify-between text-[11px] leading-[14px]">
-        <label htmlFor={name} className="text-neutral-300">
-          {label}
-        </label>
-        <span aria-live="polite" className="text-[10px] text-neutral-400">
-          {status === 'saving' ? 'Saving...' : status === 'saved' ? 'Saved' : ''}
-        </span>
-      </div>
+    <div className="field">
+      <label htmlFor={name} className="field-label">
+        {label}
+      </label>
       <input
         id={name}
         type={type}
@@ -71,16 +67,30 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
         aria-describedby={error ? errorId : hint ? hintId : undefined}
         onChange={(e) => handleChange(e.target.value)}
       />
-      {error ? (
-        <p id={errorId} className="mt-1 text-[11px] leading-[13px] text-rose-400">
-          {error}
-        </p>
-      ) : (
-        hint && (
-          <p id={hintId} className="mt-1 truncate text-[10px] leading-[13px] text-neutral-400">
-            {hint}
-          </p>
-        )
+      {(error || hint || status !== 'idle') && (
+        <div className="col-start-2 mt-1 flex min-w-0 items-start">
+          {error ? (
+            <p id={errorId} className="flex items-start gap-1 text-[11px] leading-[13px] text-rose-400">
+              <ExclamationCircleIcon className="mt-px size-3 shrink-0" aria-hidden="true" />
+              {error}
+            </p>
+          ) : (
+            hint && (
+              <p id={hintId} className="min-w-0 text-[10px] leading-[13px] text-neutral-400">
+                {hint}
+              </p>
+            )
+          )}
+          <span aria-live="polite" className="ml-auto shrink-0 text-[10px] leading-[13px] text-neutral-400">
+            {!error && status === 'saving' && <span className="pl-2">Saving...</span>}
+            {!error && status === 'saved' && (
+              <span className="inline-flex items-center gap-0.5 pl-2">
+                <CheckIcon className="size-3" aria-hidden="true" />
+                Saved
+              </span>
+            )}
+          </span>
+        </div>
       )}
     </div>
   );

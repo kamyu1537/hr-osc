@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from '@heroicons/react/16/solid';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useState } from 'react';
 import ConfigField, { Parse } from '../components/ConfigField';
@@ -50,22 +51,28 @@ const SourcePanel = () => {
 
   return (
     <>
-      <div>
-        <label htmlFor="service_type" className="mb-0.5 block text-[11px] leading-[14px] text-neutral-300">
+      <div className="field">
+        <label htmlFor="service_type" className="field-label">
           Source
         </label>
-        <select
-          id="service_type"
-          className="input"
-          value={serviceType}
-          onChange={(e) => handleServiceChange(e.target.value as IConfig['service_type'])}
-        >
-          {Object.entries(services).map(([value, { label }]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            id="service_type"
+            className="input"
+            value={serviceType}
+            onChange={(e) => handleServiceChange(e.target.value as IConfig['service_type'])}
+          >
+            {Object.entries(services).map(([value, { label }]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <ChevronDownIcon
+            className="pointer-events-none absolute top-1/2 right-1.5 size-3.5 -translate-y-1/2 text-neutral-400"
+            aria-hidden="true"
+          />
+        </div>
       </div>
 
       {service.kind === 'http' ? (
@@ -78,12 +85,17 @@ const SourcePanel = () => {
           hint={`POST bpm as text to http://127.0.0.1:${httpPort}`}
         />
       ) : (
-        <div>
-          <ConfigField key="stromno_widget_id" name="stromno_widget_id" label="Widget ID" parse={optional} />
-          <button className="link mt-1 text-[10px] leading-[13px]" onClick={() => openUrl(service.widgetIdUrl)}>
-            Find your widget ID at {new URL(service.widgetIdUrl).host}
-          </button>
-        </div>
+        <ConfigField
+          key="stromno_widget_id"
+          name="stromno_widget_id"
+          label="Widget ID"
+          parse={optional}
+          hint={
+            <button className="link" onClick={() => openUrl(service.widgetIdUrl)}>
+              Find your widget ID at {new URL(service.widgetIdUrl).host}
+            </button>
+          }
+        />
       )}
 
       <ConfigField
@@ -175,7 +187,7 @@ const Settings = () => {
         ))}
       </ul>
 
-      <section aria-labelledby={`${id}-heading`} className="min-h-0 grow overflow-y-auto flex flex-col gap-2.5">
+      <section aria-labelledby={`${id}-heading`} className="min-h-0 grow overflow-y-auto flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <h2 id={`${id}-heading`} className="text-[13px]">
             {title}

@@ -84,22 +84,42 @@
     @apply inline-flex items-center gap-1 rounded-sm border border-neutral-800 bg-neutral-900 px-2 text-xs text-neutral-200 transition-colors hover:bg-neutral-800 hover:text-white;
   }
 
+  .field {
+    @apply grid grid-cols-[108px_1fr] gap-x-2;
+  }
+
+  .field-label {
+    @apply flex items-center self-stretch text-[11px] leading-[13px] text-neutral-300;
+  }
+
   .input {
-    @apply block w-full border-0 border-b border-neutral-700 bg-transparent px-0 py-0.5 text-[13px] text-neutral-200 select-text;
+    @apply block h-6 w-full rounded-sm border border-neutral-800 bg-transparent px-1.5 text-[13px] text-neutral-200 transition-colors select-text hover:bg-neutral-900;
+  }
+
+  .input::-webkit-inner-spin-button,
+  .input::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
   }
 
   select.input {
+    appearance: none;
+    padding-right: 22px;
     background-color: var(--color-neutral-950);
+  }
+
+  select.input:hover {
+    background-color: var(--color-neutral-900);
   }
 
   .input:focus-visible {
     outline: none;
-    border-bottom-color: var(--color-white);
-    box-shadow: 0 1px 0 0 var(--color-white);
+    border-color: var(--color-neutral-200);
+    background-color: var(--color-neutral-900);
   }
 
   .input[aria-invalid='true'] {
-    border-bottom-color: var(--color-rose-400);
+    border-color: var(--color-rose-400);
   }
 
   .link {
