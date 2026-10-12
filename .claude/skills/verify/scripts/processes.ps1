@@ -13,6 +13,7 @@ public static class VerifyProcess
 {
     private const uint Terminate = 0x0001;
     private const uint Synchronize = 0x00100000;
+    private const uint SuspendResume = 0x0800;
     private const uint QueryLimitedInformation = 0x1000;
 
     [StructLayout(LayoutKind.Sequential)]
@@ -44,9 +45,21 @@ public static class VerifyProcess
     [DllImport("ntdll.dll")]
     private static extern int NtQueryInformationProcess(IntPtr handle, int infoClass, out BasicInformation info, int size, out int returned);
 
+    [DllImport("ntdll.dll")]
+    private static extern int NtSuspendProcess(IntPtr handle);
+
     public static IntPtr Open(int processId)
     {
-        return OpenProcess(Terminate | Synchronize | QueryLimitedInformation, false, processId);
+        return OpenProcess(Terminate | Synchronize | QueryLimitedInformation | SuspendResume, false, processId);
+    }
+
+    public static void Suspend(IntPtr handle)
+    {
+        int status = NtSuspendProcess(handle);
+        if (status != 0 && !HasExited(handle))
+        {
+            throw new Win32Exception(string.Format("NtSuspendProcess 0x{0:X8}", status));
+        }
     }
 
     public static void Close(IntPtr handle)
@@ -102,6 +115,7 @@ function Add-Descendants($Tree, $Seen) {
             if ($childHandle -eq [IntPtr]::Zero) { continue }
             $childCreated = [VerifyProcess]::CreationTime($childHandle)
             if ([VerifyProcess]::ParentId($childHandle) -eq $node.Id -and $childCreated -gt $node.Created) {
+                [VerifyProcess]::Suspend($childHandle)
                 $Tree.Add([pscustomobject]@{ Id = [int]$child.ProcessId; Handle = $childHandle; Created = $childCreated })
                 $Seen[[int]$child.ProcessId] = $true
                 $added++
@@ -119,15 +133,14 @@ function Stop-Tree([IntPtr]$Handle, [int]$ProcessId, [long]$Created) {
     $tree.Add([pscustomobject]@{ Id = $ProcessId; Handle = $Handle; Created = $Created })
     $seen = @{ $ProcessId = $true }
     try {
-        $null = Add-Descendants $tree $seen
-        do {
-            foreach ($node in $tree) {
-                if (-not [VerifyProcess]::HasExited($node.Handle)) {
-                    [VerifyProcess]::Kill($node.Handle)
-                    Write-Output "stopped $($node.Id)"
-                }
+        [VerifyProcess]::Suspend($Handle)
+        while ((Add-Descendants $tree $seen) -gt 0) { }
+        foreach ($node in $tree) {
+            if (-not [VerifyProcess]::HasExited($node.Handle)) {
+                [VerifyProcess]::Kill($node.Handle)
+                Write-Output "stopped $($node.Id)"
             }
-        } while ((Add-Descendants $tree $seen) -gt 0)
+        }
     }
     finally {
         $tree | Select-Object -Skip 1 | ForEach-Object { [VerifyProcess]::Close($_.Handle) }

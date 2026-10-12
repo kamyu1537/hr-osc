@@ -113,7 +113,7 @@ Drive the real path: UI controls through `cdp.mjs`, heart rate through `POST /`.
 
 ## Cleanup
 
-Stop only the processes recorded in `$OUT\pids.txt`, with their children. Windows reuses the PID of an exited process, so `processes.ps1 stop` opens each process, checks its start time against the record and terminates it through that same handle; children count only when the handle shows them started by that process after it. Never use `taskkill` or match by executable path: the owner's `pnpm tauri dev` from the same checkout runs from the same `target\` directory. PowerShell:
+Stop only the processes recorded in `$OUT\pids.txt`, with their children. Windows reuses the PID of an exited process, so `processes.ps1 stop` opens each process, checks its start time against the record, suspends it and every descendant it finds so none can spawn more, and terminates them through those handles; children count only when the handle shows them started by that process after it. Never use `taskkill` or match by executable path: the owner's `pnpm tauri dev` from the same checkout runs from the same `target\` directory. PowerShell:
 
 ```powershell
 & .claude/skills/verify/scripts/processes.ps1 stop "$OUT\pids.txt"
