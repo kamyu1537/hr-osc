@@ -9,96 +9,105 @@ type HeartRateData = {
   };
 };
 
-let timeout: ReturnType<typeof setTimeout>;
-let socket: WebSocket | null = null;
+const RETRY_BASE_MS = 1000;
+const RETRY_MAX_MS = 30000;
 
 const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void, onFailure?: (reason: Failure) => void) => {
   const config = useConfig((state) => state.config);
 
   useEffect(() => {
-    if (!config?.stromno_widget_id) {
-      if (socket) socket.close();
-      clearTimeout(timeout);
+    const widgetId = config?.stromno_widget_id;
+    if (!widgetId) {
       onDisconnect?.();
       onFailure?.('noWidgetId');
       return () => onFailure?.('');
     }
 
-    let active = true;
-    (async () => {
+    let cancelled = false;
+    let socket: WebSocket | null = null;
+    let disconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let attempt = 0;
+
+    const markDisconnected = () => {
+      clearTimeout(disconnectTimer);
+      disconnected(onDisconnect);
+    };
+
+    const scheduleRetry = () => {
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(connect, Math.min(RETRY_BASE_MS * 2 ** attempt, RETRY_MAX_MS));
+      attempt++;
+    };
+
+    const onMessage = (event: MessageEvent<string>) => {
+      console.info('WS: message', event.data);
+      attempt = 0;
+      clearTimeout(disconnectTimer);
+
+      connected(onConnected);
+      try {
+        const json = JSON.parse(event.data) as HeartRateData;
+        onReceiveHeartrate?.(json.data.heartRate);
+        sendOscHeartRate(json.data.heartRate);
+      } catch (err) {
+        console.error(err);
+      }
+
+      disconnectTimer = setTimeout(markDisconnected, getTimeoutSeconds());
+    };
+
+    const onOpen = () => {
+      console.info('WS: open');
+    };
+
+    const onError = (error: Event) => {
+      console.error('WS: error', error);
+    };
+
+    const onClose = () => {
+      console.info('WS: closed');
+      socket = null;
+      if (cancelled) return;
+      markDisconnected();
+      scheduleRetry();
+    };
+
+    const connect = async () => {
       console.info('connecting to websocket');
 
-      const wsUrl = await getWebSocketUrl(config.stromno_widget_id).catch((err) => {
+      const wsUrl = await getWebSocketUrl(widgetId).catch((err) => {
         console.error(err);
         return '';
       });
-      if (!wsUrl) {
-        if (socket) socket.close();
+      if (cancelled) return;
 
+      if (!wsUrl) {
         console.info('failed to get websocket url');
-        if (active) {
-          clearTimeout(timeout);
-          onDisconnect?.();
-          onFailure?.('noWebSocketUrl');
-        }
+        markDisconnected();
+        onFailure?.('noWebSocketUrl');
+        scheduleRetry();
         return;
       }
 
-      if (socket) socket.close();
-
+      onFailure?.('');
       socket = new WebSocket(wsUrl);
+      socket.addEventListener('open', onOpen);
+      socket.addEventListener('error', onError);
+      socket.addEventListener('message', onMessage);
+      socket.addEventListener('close', onClose);
+    };
 
-      const onMessage = (event: MessageEvent<string>) => {
-        if (config == null) return;
-        console.info('WS: message', event.data);
-        if (timeout != null) {
-          clearTimeout(timeout);
-        }
-
-        connected(onConnected);
-        try {
-          const json = JSON.parse(event.data) as HeartRateData;
-          onReceiveHeartrate?.(json.data.heartRate);
-          sendOscHeartRate(json.data.heartRate);
-        } catch (err) {
-          console.error(err);
-        }
-
-        timeout = setTimeout(() => {
-          disconnected(onDisconnect);
-        }, getTimeoutSeconds());
-      };
-
-      const onOpen = () => {
-        console.info('WS: open');
-      };
-
-      const onError = (error: Event) => {
-        console.error('WS: error', error);
-      };
-
-      const onClose = () => {
-        console.info('WS: closed');
-        disconnected();
-
-        socket?.removeEventListener('open', onOpen);
-        socket?.removeEventListener('error', onError);
-        socket?.removeEventListener('message', onMessage);
-        socket?.removeEventListener('close', onClose);
-      };
-
-      socket?.addEventListener('open', onOpen);
-      socket?.addEventListener('error', onError);
-      socket?.addEventListener('message', onMessage);
-      socket?.addEventListener('close', onClose);
-    })();
+    connect();
 
     return () => {
       console.info('unmount');
-      active = false;
+      cancelled = true;
+      clearTimeout(retryTimer);
+      clearTimeout(disconnectTimer);
+      socket?.close();
+      disconnected(onDisconnect);
       onFailure?.('');
-      if (socket) socket.close();
-      socket = null;
     };
   }, [config]);
 };
