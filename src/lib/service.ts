@@ -12,25 +12,30 @@ export type ServiceProps = {
 };
 
 let timeout: ReturnType<typeof setTimeout> | undefined;
+let lastConnected: boolean | undefined;
 
 const currentConfig = () => useConfig.getState().config as IConfig;
 
-export const connected = (onConnected?: () => void) => {
-  const config = currentConfig();
+const sendConnected = (value: boolean) => {
+  if (lastConnected === value) return;
 
+  lastConnected = value;
+  const config = currentConfig();
+  sendOscBool(config, config.osc_path_connected, value);
+};
+
+export const connected = (onConnected?: () => void) => {
   console.info('connected');
   onConnected?.();
   clearTimeout(timeout);
-  sendOscBool(config, config.osc_path_connected, true);
+  sendConnected(true);
 };
 
 export const disconnected = (onDisconnect?: () => void) => {
-  const config = currentConfig();
-
   console.info('disconnected');
   onDisconnect?.();
   clearTimeout(timeout);
-  sendOscBool(config, config.osc_path_connected, false);
+  sendConnected(false);
 };
 
 export const getTimeoutSeconds = () => currentConfig().connected_timeout * 1000;
