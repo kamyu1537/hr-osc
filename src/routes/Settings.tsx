@@ -2,8 +2,9 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useState } from 'react';
 import ConfigField, { Parse } from '../components/ConfigField';
 import { defaultConfig, IConfig, saveConfig, services } from '../lib/config';
-import { startHttpServer, stopHttpServer } from '../lib/http_server';
+import { stopHttpServer } from '../lib/http_server';
 import { useConfig } from '../lib/states';
+import useSourceAction from '../hooks/useSourceAction';
 import { cn } from '../lib/utils';
 
 const port: Parse<number> = (raw) => {
@@ -94,16 +95,12 @@ const SourcePanel = () => {
   );
 };
 
-export const SourceAction = () => {
-  const serviceType = useConfig((state) => state.config?.service_type ?? defaultConfig.service_type);
+const SourceAction = () => {
+  const { label, run } = useSourceAction();
 
-  return services[serviceType].kind === 'http' ? (
-    <button className="btn" onClick={() => startHttpServer(latestConfig())}>
-      Restart server
-    </button>
-  ) : (
-    <button className="btn" onClick={() => saveConfig({ ...latestConfig() })}>
-      Reconnect
+  return (
+    <button className="btn" onClick={run}>
+      {label}
     </button>
   );
 };

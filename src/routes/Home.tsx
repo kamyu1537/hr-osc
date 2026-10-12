@@ -1,9 +1,10 @@
 import { HeartIcon } from '@heroicons/react/24/solid';
+import { ArrowPathIcon } from '@heroicons/react/16/solid';
 import { useLayoutEffect, useRef } from 'react';
+import useSourceAction from '../hooks/useSourceAction';
 import { IConfig, services } from '../lib/config';
 import { getAddr } from '../lib/osc';
 import { cn } from '../lib/utils';
-import { SourceAction } from './Settings';
 
 type HomeProps = {
   config: IConfig;
@@ -37,6 +38,7 @@ const Heartbeat = ({ bpm }: { bpm: number }) => {
 };
 
 const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
+  const recovery = useSourceAction();
   const percent = config.max_heart_rate > 0 ? Math.min(1, Math.max(0, heartRate / config.max_heart_rate)) : 0;
 
   return (
@@ -45,16 +47,26 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
         <span className={cn('truncate rounded-sm border bg-neutral-900 px-2 py-px', services[config.service_type].chip)}>
           {services[config.service_type].label}
         </span>
-        <span
-          aria-live="polite"
-          className={cn(
-            'shrink-0 inline-flex items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-px',
-            connected ? 'text-neutral-200' : 'text-neutral-400'
+        <div className="flex shrink-0 gap-1.5">
+          {!connected && (
+            <button
+              onClick={recovery.run}
+              className="inline-flex items-center gap-1 rounded-sm border border-neutral-400/30 bg-neutral-900 px-2 py-px text-neutral-300 transition-colors hover:border-neutral-400/60 hover:text-white"
+            >
+              <ArrowPathIcon className="size-3" aria-hidden="true" />
+              {recovery.label}
+            </button>
           )}
-        >
-          <span className={cn('size-1.5 rounded-full', connected ? 'bg-lime-500' : 'bg-neutral-600')} />
-          {connected ? 'Connected' : 'Disconnected'}
-        </span>
+          <span
+            aria-live="polite"
+            className={cn(
+              'rounded-sm border bg-neutral-900 px-2 py-px',
+              connected ? 'border-lime-500/30 text-lime-500' : 'border-neutral-400/30 text-neutral-400'
+            )}
+          >
+            {connected ? 'Connected' : 'Disconnected'}
+          </span>
+        </div>
       </div>
 
       <div className="relative mt-3 size-30">
@@ -79,23 +91,24 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
           ) : (
             <HeartIcon className={cn('size-8', connected ? 'text-red-400' : 'text-neutral-500')} />
           )}
-          <span className={cn('text-[20px] tabular-nums', connected ? 'text-red-400' : 'text-neutral-400')}>
-            {heartRate}
-          </span>
-          {connected && <span className="text-[10px] tabular-nums text-neutral-500">{Math.round(percent * 100)}%</span>}
+          {connected && (
+            <>
+              <span className="text-[20px] tabular-nums text-red-400">{heartRate}</span>
+              <span className="text-[10px] tabular-nums text-neutral-500">{Math.round(percent * 100)}%</span>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-2 text-center text-[11px]">
+      <div className="mt-4 text-center text-[11px]">
         {failure ? (
           <span className="text-rose-400">{failure}</span>
         ) : (
-          <span>
+          <>
             <span className="text-neutral-500">OSC</span>{' '}
             <span className="tabular-nums text-neutral-300">{getAddr(config)}</span>
-          </span>
+          </>
         )}
-        {!connected && <SourceAction />}
       </div>
     </div>
   );
