@@ -4,7 +4,7 @@ With the HTTP source selected, hr-osc listens on `http_server_port`, takes the b
 
 ## Sub-features
 
-- `http-receive` accepts `POST /` with an integer body and answers `ok`.
+- `http-receive` accepts `POST /` with an integer body from 0 to 300 and answers `ok`.
 - `http-home` shows Connected, the bpm and the percent on Home.
 - `http-osc` sends `hr_connected` `true` and `hr_percent` each second.
 - `http-timeout` turns Disconnected and sends `hr_connected` `false` once after the timeout.
@@ -31,4 +31,5 @@ Preconditions:
 
 - The percent goes over OSC as a 32-bit float, so `0.36` prints as `0.36000001430511475`.
 - Home polls the receiver once a second; check the screen at least 1 s after a POST.
-- A body that is not an integer gets `error parsing heartrate` with status 200 (#15).
+- A body that is not an integer gets 400 `invalid heartrate`; an integer outside 0 to 300 gets 422 `heartrate out of range`. Neither changes the heart rate.
+- When the port cannot be bound, Home shows `Can't open HTTP port <port>` in place of the OSC line.
