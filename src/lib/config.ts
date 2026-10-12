@@ -1,4 +1,4 @@
-import { BaseDirectory, exists, mkdir, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
+import { BaseDirectory, exists, mkdir, readTextFile, rename, writeTextFile } from '@tauri-apps/plugin-fs';
 import { LanguageSetting, languageSettings } from './i18n';
 import { useConfig } from './states';
 
@@ -37,15 +37,25 @@ export const services: Record<IConfig['service_type'], Service> = {
   http: { label: 'HTTP', chip: 'border-[#34d399]/30 text-[#34d399]', kind: 'http' },
 };
 
-async function writeDefaultConfig() {
-  await writeTextFile('data/config.json', JSON.stringify(defaultConfig, null, 2), { baseDir: BaseDirectory.AppConfig });
+let writing = Promise.resolve();
+
+function writeConfig(config: IConfig) {
+  const write = writing.then(async () => {
+    await writeTextFile('data/config.json.tmp', JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
+    await rename('data/config.json.tmp', 'data/config.json', {
+      oldPathBaseDir: BaseDirectory.AppConfig,
+      newPathBaseDir: BaseDirectory.AppConfig,
+    });
+  });
+  writing = write.catch(() => {});
+  return write;
 }
 
 export async function getConfig() {
   await mkdir('data', { recursive: true, baseDir: BaseDirectory.AppConfig });
   const isExists = await exists('data/config.json', { baseDir: BaseDirectory.AppConfig });
   if (!isExists) {
-    await writeDefaultConfig();
+    await writeConfig(defaultConfig);
   }
 
   let config = { ...defaultConfig };
@@ -62,7 +72,7 @@ export async function getConfig() {
   } catch (err) {
     console.error(err);
     await writeTextFile('data/config.json.bak', read, { baseDir: BaseDirectory.AppConfig });
-    await writeDefaultConfig();
+    await writeConfig(defaultConfig);
   }
 
   return config;
@@ -73,7 +83,7 @@ export async function saveConfig(config: IConfig) {
   const next = { ...config };
   useConfig.getState().setConfig(next);
   try {
-    await writeTextFile('data/config.json', JSON.stringify(next, null, 2), { baseDir: BaseDirectory.AppConfig });
+    await writeConfig(next);
   } catch (err) {
     if (previous && useConfig.getState().config === next) {
       useConfig.getState().setConfig(previous);
