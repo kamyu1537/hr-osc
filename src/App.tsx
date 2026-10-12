@@ -28,6 +28,7 @@ const App = () => {
     setLoadError(null);
     try {
       setConfig(await getConfig());
+      setLoadError(null);
     } catch (err) {
       console.error(err);
       setLoadError({ message: String(err), path: await configFilePath().catch(() => '') });
