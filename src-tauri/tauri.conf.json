@@ -12,7 +12,7 @@
   "identifier": "me.kamyu.hr-osc",
   "app": {
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' data:; connect-src ipc: https://ipc.localhost https://api.github.com wss://ramiel.pulsoid.net"
     },
     "windows": [
       {

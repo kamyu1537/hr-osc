@@ -17,15 +17,18 @@
     },
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://api.stromno.com/*" }]
+      "allow": [{ "url": "https://api.stromno.com/v1/api/public/rpc" }]
     },
     {
       "identifier": "opener:allow-open-url",
       "allow": [
-        { "url": "https://github.com/*" },
-        { "url": "https://twitter.com/*" },
-        { "url": "https://pulsoid.net/*" },
-        { "url": "https://app.stromno.com/*" }
+        { "url": "https://github.com/kamyu1537/hr-osc.git" },
+        { "url": "https://github.com/kamyu1537/hr-osc/releases/latest" },
+        { "url": "https://github.com/sponsors/kamyu1537" },
+        { "url": "https://twitter.com/kamyu1537" },
+        { "url": "https://twitter.com/selees824" },
+        { "url": "https://pulsoid.net/ui/configuration" },
+        { "url": "https://app.stromno.com/dashboard" }
       ]
     }
   ]
