@@ -28,24 +28,15 @@ const HttpService = ({ setConnected, setHeartRate }: ServiceProps) => {
       interval = setInterval(() => {
         (async () => {
           const [heartRate, lastUpdate] = await Promise.all([getHttpHeartRate(), getHttpHeartRateUpdateTime()]);
-          console.info({ heartRate, lastUpdate });
 
           if (heartRate == null || lastUpdate == null) {
-            console.info('no heart rate');
             disconnected();
             setConnected(false);
             return;
           }
 
           const now = Date.now();
-          console.info({
-            now,
-            lastUpdate,
-            calc: now - lastUpdate,
-          });
-
           if (now - lastUpdate > getTimeoutSeconds()) {
-            console.info('timeout', now - lastUpdate);
             disconnected();
             setConnected(false);
             return;

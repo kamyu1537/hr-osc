@@ -25,14 +25,12 @@ const sendConnected = (value: boolean) => {
 };
 
 export const connected = (onConnected?: () => void) => {
-  console.info('connected');
   onConnected?.();
   clearTimeout(timeout);
   sendConnected(true);
 };
 
 export const disconnected = (onDisconnect?: () => void) => {
-  console.info('disconnected');
   onDisconnect?.();
   clearTimeout(timeout);
   sendConnected(false);
