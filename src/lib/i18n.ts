@@ -23,6 +23,7 @@ const en = {
   failures: {
     noWidgetId: 'No widget ID set',
     noWebSocketUrl: 'Failed to get WebSocket URL',
+    httpPort: (port: number) => `Can't open HTTP port ${port}`,
   },
   settings: {
     tabs: { source: 'Source', osc: 'OSC', parameters: 'Params', general: 'General' },
@@ -78,6 +79,7 @@ const ko: Strings = {
   failures: {
     noWidgetId: '위젯 ID가 설정되지 않음',
     noWebSocketUrl: 'WebSocket URL을 가져오지 못함',
+    httpPort: (port: number) => `HTTP ${port} 포트를 열 수 없음`,
   },
   settings: {
     tabs: { source: '소스', osc: 'OSC', parameters: '파라미터', general: '일반' },
@@ -131,6 +133,7 @@ const ja: Strings = {
   failures: {
     noWidgetId: 'ウィジェットIDが未設定です',
     noWebSocketUrl: 'WebSocket URLを取得できません',
+    httpPort: (port: number) => `HTTPポート${port}を開けません`,
   },
   settings: {
     tabs: { source: 'ソース', osc: 'OSC', parameters: 'パラメータ', general: '一般' },

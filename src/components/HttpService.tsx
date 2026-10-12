@@ -3,8 +3,9 @@ import { getHttpHeartRate, getHttpHeartRateUpdateTime, startHttpServer } from '.
 import { connected, disconnected, getTimeoutSeconds, sendOscHeartRate, ServiceProps } from '../lib/service';
 import { useConfig } from '../lib/states';
 
-const HttpService = ({ setConnected, setHeartRate }: ServiceProps) => {
+const HttpService = ({ setConnected, setHeartRate, setFailure }: ServiceProps) => {
   const config = useConfig((state) => state.config);
+  const reconnectRequest = useConfig((state) => state.reconnectRequest);
   const [serverPort, setServerPort] = useState(config?.http_server_port || 0);
 
   useEffect(() => {
@@ -21,9 +22,12 @@ const HttpService = ({ setConnected, setHeartRate }: ServiceProps) => {
 
     let interval: ReturnType<typeof setInterval>;
     let start = false;
+    let cancelled = false;
     if (serverPort !== 0) {
       start = true;
-      startHttpServer(config);
+      startHttpServer(config).catch(() => {
+        if (!cancelled) setFailure('httpPort');
+      });
 
       interval = setInterval(() => {
         (async () => {
@@ -51,11 +55,13 @@ const HttpService = ({ setConnected, setHeartRate }: ServiceProps) => {
     }
 
     return () => {
+      cancelled = true;
+      setFailure('');
       if (start) {
         clearInterval(interval);
       }
     };
-  }, [serverPort]);
+  }, [serverPort, reconnectRequest]);
 
   return <></>;
 };

@@ -106,7 +106,9 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
 
       <div className="mt-4 mb-auto text-center text-[11px]">
         {failure ? (
-          <span className="text-rose-400">{t.failures[failure]}</span>
+          <span className="text-rose-400">
+            {failure === 'httpPort' ? t.failures.httpPort(config.http_server_port) : t.failures[failure]}
+          </span>
         ) : (
           <>
             <span className={oscFailed ? 'text-rose-400' : 'text-neutral-500'}>{oscFailed ? t.home.oscFailed : 'OSC'}</span>{' '}
