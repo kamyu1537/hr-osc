@@ -17,10 +17,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 250,
+        "height": 270,
         "resizable": false,
         "title": "hr-osc",
-        "width": 325,
+        "width": 360,
         "useHttpsScheme": true
       }
     ]

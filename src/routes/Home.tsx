@@ -69,7 +69,7 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
         </div>
       </div>
 
-      <div className="relative mt-3 size-30">
+      <div className="relative mt-auto size-30">
         <svg viewBox="0 0 36 36" className="absolute inset-0 -rotate-90" aria-hidden="true">
           <circle cx="18" cy="18" r="16" fill="none" strokeWidth="2.5" className="stroke-neutral-900" />
           {connected && percent > 0 && (
@@ -98,7 +98,7 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
         </div>
       </div>
 
-      <div className="mt-4 text-center text-[11px]">
+      <div className="mt-4 mb-auto text-center text-[11px]">
         {failure ? (
           <span className="text-rose-400">{failure}</span>
         ) : (
