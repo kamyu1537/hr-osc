@@ -19,11 +19,27 @@
     color-scheme: dark;
   }
 
-  * {
-    scrollbar-width: none;
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
 
-  ::-webkit-scrollbar {
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-left: 4px solid transparent;
+    border-radius: 2px;
+    background-color: var(--color-neutral-700);
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-neutral-500);
+  }
+
+  ::-webkit-scrollbar-button {
     display: none;
   }
 
