@@ -92,21 +92,45 @@ public static class VerifyProcess
 }
 '@
 
-function Stop-Tree([IntPtr]$Handle, [int]$ProcessId, [long]$Created) {
-    if (-not [VerifyProcess]::HasExited($Handle)) {
-        [VerifyProcess]::Kill($Handle)
-        Write-Output "stopped $ProcessId"
-    }
-    foreach ($child in Get-CimInstance Win32_Process -Filter "ParentProcessId=$ProcessId") {
-        $childHandle = [VerifyProcess]::Open($child.ProcessId)
-        if ($childHandle -eq [IntPtr]::Zero) { continue }
-        try {
+function Add-Descendants($Tree, $Seen) {
+    $added = 0
+    for ($i = 0; $i -lt $Tree.Count; $i++) {
+        $node = $Tree[$i]
+        foreach ($child in Get-CimInstance Win32_Process -Filter "ParentProcessId=$($node.Id)") {
+            if ($Seen.ContainsKey([int]$child.ProcessId)) { continue }
+            $childHandle = [VerifyProcess]::Open($child.ProcessId)
+            if ($childHandle -eq [IntPtr]::Zero) { continue }
             $childCreated = [VerifyProcess]::CreationTime($childHandle)
-            if ([VerifyProcess]::ParentId($childHandle) -eq $ProcessId -and $childCreated -gt $Created) {
-                Stop-Tree $childHandle $child.ProcessId $childCreated
+            if ([VerifyProcess]::ParentId($childHandle) -eq $node.Id -and $childCreated -gt $node.Created) {
+                $Tree.Add([pscustomobject]@{ Id = [int]$child.ProcessId; Handle = $childHandle; Created = $childCreated })
+                $Seen[[int]$child.ProcessId] = $true
+                $added++
+            }
+            else {
+                [VerifyProcess]::Close($childHandle)
             }
         }
-        finally { [VerifyProcess]::Close($childHandle) }
+    }
+    $added
+}
+
+function Stop-Tree([IntPtr]$Handle, [int]$ProcessId, [long]$Created) {
+    $tree = [System.Collections.Generic.List[object]]::new()
+    $tree.Add([pscustomobject]@{ Id = $ProcessId; Handle = $Handle; Created = $Created })
+    $seen = @{ $ProcessId = $true }
+    try {
+        $null = Add-Descendants $tree $seen
+        do {
+            foreach ($node in $tree) {
+                if (-not [VerifyProcess]::HasExited($node.Handle)) {
+                    [VerifyProcess]::Kill($node.Handle)
+                    Write-Output "stopped $($node.Id)"
+                }
+            }
+        } while ((Add-Descendants $tree $seen) -gt 0)
+    }
+    finally {
+        $tree | Select-Object -Skip 1 | ForEach-Object { [VerifyProcess]::Close($_.Handle) }
     }
 }
 
