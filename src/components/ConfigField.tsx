@@ -1,4 +1,4 @@
-import { CheckIcon, ExclamationCircleIcon } from '@heroicons/react/16/solid';
+import { CheckIcon } from '@heroicons/react/16/solid';
 import { ReactNode, useRef, useState } from 'react';
 import { defaultConfig, IConfig, saveConfig } from '../lib/config';
 import { useConfig } from '../lib/states';
@@ -71,8 +71,7 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
         <div className="col-start-2 mt-1 flex min-w-0 items-start">
           <div className="min-w-0">
             {error && (
-              <p id={errorId} className="flex items-start gap-1 text-[11px] leading-[13px] text-rose-400">
-                <ExclamationCircleIcon className="mt-px size-3 shrink-0" aria-hidden="true" />
+              <p id={errorId} className="text-[10px] leading-[13px] text-rose-400">
                 {error}
               </p>
             )}
