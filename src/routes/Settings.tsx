@@ -244,9 +244,6 @@ const PulsoidLogin = ({ onToken }: { onToken: (token: string) => void }) => {
         )}
         {state.step === 'failed' && <span className="text-rose-400">{t.settings.login[state.reason]}</span>}
       </p>
-      {device && (
-        <p className="max-w-full truncate text-[10px] leading-[13px] text-neutral-500">{t.settings.login.code(device.userCode)}</p>
-      )}
     </div>
   );
 };
