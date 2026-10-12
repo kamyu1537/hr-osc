@@ -1,0 +1,3 @@
+# hr-osc
+
+@AGENTS.md
