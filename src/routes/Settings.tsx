@@ -59,6 +59,7 @@ const SourcePanel = () => {
       {serviceType === 'http' ? (
         <>
           <ConfigField
+            key="http_server_port"
             name="http_server_port"
             label="HTTP server port"
             type="number"
@@ -71,7 +72,7 @@ const SourcePanel = () => {
         </>
       ) : (
         <>
-          <ConfigField name="stromno_widget_id" label="Widget ID" parse={optional} />
+          <ConfigField key="stromno_widget_id" name="stromno_widget_id" label="Widget ID" parse={optional} />
           <button className="btn self-start" onClick={() => saveConfig({ ...latestConfig() })}>
             Reconnect
           </button>
