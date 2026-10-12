@@ -87,11 +87,16 @@ public static class VerifyProcess
         {
             throw new Win32Exception();
         }
+        WaitForSingleObject(handle, 5000);
     }
 }
 '@
 
 function Stop-Tree([IntPtr]$Handle, [int]$ProcessId, [long]$Created) {
+    if (-not [VerifyProcess]::HasExited($Handle)) {
+        [VerifyProcess]::Kill($Handle)
+        Write-Output "stopped $ProcessId"
+    }
     foreach ($child in Get-CimInstance Win32_Process -Filter "ParentProcessId=$ProcessId") {
         $childHandle = [VerifyProcess]::Open($child.ProcessId)
         if ($childHandle -eq [IntPtr]::Zero) { continue }
@@ -102,10 +107,6 @@ function Stop-Tree([IntPtr]$Handle, [int]$ProcessId, [long]$Created) {
             }
         }
         finally { [VerifyProcess]::Close($childHandle) }
-    }
-    if (-not [VerifyProcess]::HasExited($Handle)) {
-        [VerifyProcess]::Kill($Handle)
-        Write-Output "stopped $ProcessId"
     }
 }
 
