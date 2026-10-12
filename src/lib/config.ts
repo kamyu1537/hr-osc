@@ -46,8 +46,16 @@ export async function getConfig() {
 }
 
 export async function saveConfig(config: IConfig) {
+  const previous = useConfig.getState().config;
   useConfig.getState().setConfig({ ...config });
-  await writeTextFile('data/config.json', JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
+  try {
+    await writeTextFile('data/config.json', JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
+  } catch (err) {
+    if (previous) {
+      useConfig.getState().setConfig(previous);
+    }
+    throw err;
+  }
 }
 
 export interface IConfig {
