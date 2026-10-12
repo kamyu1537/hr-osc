@@ -61,11 +61,11 @@ netstat -ano | grep -E ':(1421|18080|19000|9334) ' | grep -E 'LISTENING|^ *UDP'
    until curl -s -m 1 http://127.0.0.1:18080/ | grep -q 'hr-osc http server' && curl -s -m 1 http://127.0.0.1:9334/json/version >/dev/null; do sleep 1; done
    ```
 
-5. Record the processes this run started, for Cleanup. The ports were free before launch, so their listeners are yours. PowerShell, with `$OUT` set to the evidence directory:
+5. Record the processes this run started, with their start times, for Cleanup. The ports were free before launch, so their listeners are yours. PowerShell, with `$OUT` set to the evidence directory:
 
    ```powershell
    $pids = @(Get-NetTCPConnection -State Listen -LocalPort 18080,1421 | ForEach-Object OwningProcess) + @(Get-NetUDPEndpoint -LocalPort 19000 | ForEach-Object OwningProcess)
-   $pids | Sort-Object -Unique | Set-Content "$OUT\pids.txt"
+   $pids | Sort-Object -Unique | ForEach-Object { $p = Get-CimInstance Win32_Process -Filter "ProcessId=$_"; "$($p.ProcessId) $($p.CreationDate.ToFileTimeUtc())" } | Set-Content "$OUT\pids.txt"
    ```
 
 ## Doctor
@@ -113,10 +113,14 @@ Drive the real path: UI controls through `cdp.mjs`, heart rate through `POST /`.
 
 ## Cleanup
 
-Stop only the processes recorded in `$OUT\pids.txt`, with their children. Never match by executable path: the owner's `pnpm tauri dev` from the same checkout runs from the same `target\` directory. PowerShell:
+Stop only the processes recorded in `$OUT\pids.txt`, with their children, and only while a process's start time still matches the record: Windows reuses the PID of an exited process. Never match by executable path: the owner's `pnpm tauri dev` from the same checkout runs from the same `target\` directory. PowerShell:
 
 ```powershell
-Get-Content "$OUT\pids.txt" | ForEach-Object { taskkill /PID $_ /T /F }
+Get-Content "$OUT\pids.txt" | ForEach-Object {
+  $id, $created = $_ -split ' '
+  $p = Get-CimInstance Win32_Process -Filter "ProcessId=$id"
+  if ($p -and $p.CreationDate.ToFileTimeUtc() -eq [long]$created) { taskkill /PID $id /T /F }
+}
 Get-NetTCPConnection -State Listen -LocalPort 1421,18080,9334 -ErrorAction SilentlyContinue
 Get-NetUDPEndpoint -LocalPort 19000 -ErrorAction SilentlyContinue
 ```
