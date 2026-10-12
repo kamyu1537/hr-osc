@@ -16,9 +16,9 @@ export const defaultConfig: IConfig = {
   osc_client_port: 9000,
 };
 
-export const serviceLabels: Record<IConfig['service_type'], string> = {
-  stromno: 'Pulsoid (Legacy) / Stromno',
-  http: 'HTTP',
+export const services: Record<IConfig['service_type'], { label: string; chip: string }> = {
+  stromno: { label: 'Pulsoid (Legacy) / Stromno', chip: 'border-[#cab41f]/30 text-[#cab41f]' },
+  http: { label: 'HTTP', chip: 'border-[#34d399]/30 text-[#34d399]' },
 };
 
 async function writeDefaultConfig() {

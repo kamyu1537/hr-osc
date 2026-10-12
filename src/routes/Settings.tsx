@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import ConfigField, { Parse } from '../components/ConfigField';
-import { defaultConfig, IConfig, saveConfig, serviceLabels } from '../lib/config';
+import { defaultConfig, IConfig, saveConfig, services } from '../lib/config';
 import { startHttpServer, stopHttpServer } from '../lib/http_server';
 import { useConfig } from '../lib/states';
 import { cn } from '../lib/utils';
@@ -55,7 +55,7 @@ const SourcePanel = () => {
           value={serviceType}
           onChange={(e) => handleServiceChange(e.target.value as IConfig['service_type'])}
         >
-          {Object.entries(serviceLabels).map(([value, label]) => (
+          {Object.entries(services).map(([value, { label }]) => (
             <option key={value} value={value}>
               {label}
             </option>
