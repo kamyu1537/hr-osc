@@ -34,7 +34,6 @@ const App = () => {
   return (
     <MemoryRouter>
       {update && Update}
-      <NavBar />
       {config.service_type === 'http' && (
         <HttpService setConnected={setConnected} setHeartRate={setHeartRate} setFailure={setFailure} />
       )}
@@ -49,6 +48,7 @@ const App = () => {
           <Route path="/about" element={<About />} />
         </Routes>
       </main>
+      <NavBar />
     </MemoryRouter>
   );
 };

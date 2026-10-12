@@ -19,6 +19,11 @@
     color-scheme: dark;
   }
 
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-neutral-700) transparent;
+  }
+
   input::placeholder {
     color: var(--color-neutral-500);
   }
@@ -44,11 +49,18 @@
   }
 
   .input {
-    @apply block w-full rounded-sm border border-neutral-800 bg-neutral-900 px-1.5 py-0.5 text-sm text-neutral-200 select-text;
+    @apply block w-full border-0 border-b border-neutral-700 bg-transparent px-0.5 py-0.5 text-sm text-neutral-200 select-text;
+  }
+
+  .input:focus-visible {
+    outline: none;
+    border-bottom-color: var(--color-white);
+    box-shadow: 0 1px 0 0 var(--color-white);
   }
 
   .input[aria-invalid='true'] {
-    @apply border-rose-400;
+    border-bottom-color: var(--color-rose-400);
+    box-shadow: 0 1px 0 0 var(--color-rose-400);
   }
 
   .link {

@@ -1,26 +1,30 @@
+import { Cog6ToothIcon, HomeIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { NavLink } from 'react-router';
+import { cn } from '../lib/utils';
 
 const items = [
-  { to: '/', label: 'Home' },
-  { to: '/settings', label: 'Settings' },
-  { to: '/about', label: 'About' },
+  { to: '/', label: 'Home', Icon: HomeIcon },
+  { to: '/settings', label: 'Settings', Icon: Cog6ToothIcon },
+  { to: '/about', label: 'About', Icon: InformationCircleIcon },
 ];
 
 const NavBar = () => {
   return (
-    <nav className="mb-1">
-      <ul className="flex gap-3">
-        {items.map((item) => (
-          <li key={item.to}>
+    <nav className="-mx-2 -mb-2 mt-1 border-t border-neutral-800">
+      <ul className="flex">
+        {items.map(({ to, label, Icon }) => (
+          <li key={to} className="flex-1">
             <NavLink
-              to={item.to}
+              to={to}
               className={({ isActive }) =>
-                isActive
-                  ? 'border-b-2 border-white text-white'
-                  : 'border-b-2 border-transparent text-neutral-300 transition-colors hover:text-white'
+                cn(
+                  'flex items-center justify-center gap-1 py-1.5 text-xs transition-colors',
+                  isActive ? 'text-white' : 'text-neutral-400 hover:text-white'
+                )
               }
             >
-              {item.label}
+              <Icon className="w-4" />
+              {label}
             </NavLink>
           </li>
         ))}
