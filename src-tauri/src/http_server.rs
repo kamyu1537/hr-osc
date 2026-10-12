@@ -196,7 +196,9 @@ mod tests {
             .unwrap();
         std::net::TcpListener::bind(("0.0.0.0", port)).unwrap();
         stale.write_all(b"0").await.unwrap();
-        tokio::time::sleep(Duration::from_millis(200)).await;
+        let mut response = String::new();
+        stale.read_to_string(&mut response).await.unwrap();
+        assert!(response.ends_with("\r\n\r\nserver stopped"), "{response}");
         assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 60);
 
         let _idle = TcpStream::connect(("127.0.0.1", next_port)).await.unwrap();
