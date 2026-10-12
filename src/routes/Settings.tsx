@@ -39,10 +39,33 @@ const optional: Parse<string> = (raw) => ({ value: raw.trim() });
 const latestConfig = () => useConfig.getState().config ?? defaultConfig;
 
 const handleServiceChange = (service: IConfig['service_type']) => {
-  saveConfig({ ...latestConfig(), service_type: service });
+  const saving = saveConfig({ ...latestConfig(), service_type: service });
   if (services[service].kind !== 'http') {
     stopHttpServer();
   }
+  return saving;
+};
+
+const useSaveFailure = () => {
+  const [failed, setFailed] = useState(false);
+  const track = (saving: Promise<void>) =>
+    saving.then(
+      () => setFailed(false),
+      (err) => {
+        console.error(err);
+        setFailed(true);
+      }
+    );
+  return [failed, track] as const;
+};
+
+const SaveError = ({ id }: { id: string }) => {
+  const t = useStrings();
+  return (
+    <p id={id} className="col-start-2 mt-1 text-[10px] leading-[13px] text-rose-400">
+      {t.errors.save}
+    </p>
+  );
 };
 
 const SourcePanel = () => {
@@ -50,6 +73,7 @@ const SourcePanel = () => {
   const serviceType = useConfig((state) => state.config?.service_type ?? defaultConfig.service_type);
   const httpPort = useConfig((state) => state.config?.http_server_port ?? defaultConfig.http_server_port);
   const service = services[serviceType];
+  const [saveFailed, trackSave] = useSaveFailure();
 
   return (
     <>
@@ -62,7 +86,9 @@ const SourcePanel = () => {
             id="service_type"
             className="input"
             value={serviceType}
-            onChange={(e) => handleServiceChange(e.target.value as IConfig['service_type'])}
+            aria-invalid={saveFailed}
+            aria-describedby={saveFailed ? 'service_type-error' : undefined}
+            onChange={(e) => trackSave(handleServiceChange(e.target.value as IConfig['service_type']))}
           >
             {Object.entries(services).map(([value, { label }]) => (
               <option key={value} value={value}>
@@ -75,6 +101,7 @@ const SourcePanel = () => {
             aria-hidden="true"
           />
         </div>
+        {saveFailed && <SaveError id="service_type-error" />}
       </div>
 
       {service.kind === 'http' ? (
@@ -178,6 +205,7 @@ const languageLabels: Record<Language, string> = { ko: '한국어', en: 'English
 const GeneralPanel = () => {
   const t = useStrings();
   const language = useConfig((state) => state.config?.language ?? defaultConfig.language);
+  const [saveFailed, trackSave] = useSaveFailure();
 
   return (
     <div className="field">
@@ -189,7 +217,9 @@ const GeneralPanel = () => {
           id="language"
           className="input"
           value={language}
-          onChange={(e) => saveConfig({ ...latestConfig(), language: e.target.value as LanguageSetting })}
+          aria-invalid={saveFailed}
+          aria-describedby={saveFailed ? 'language-error' : undefined}
+          onChange={(e) => trackSave(saveConfig({ ...latestConfig(), language: e.target.value as LanguageSetting }))}
         >
           <option value="auto">{t.settings.auto}</option>
           {Object.entries(languageLabels).map(([value, label]) => (
@@ -203,6 +233,7 @@ const GeneralPanel = () => {
           aria-hidden="true"
         />
       </div>
+      {saveFailed && <SaveError id="language-error" />}
     </div>
   );
 };
