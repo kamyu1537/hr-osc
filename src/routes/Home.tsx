@@ -102,7 +102,11 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
       </div>
 
       <div className="mt-4 mb-auto text-center text-[11px]">
-        {failure ? (
+        {recovery.saveFailed ? (
+          <span role="alert" className="text-rose-400">
+            {t.errors.save}
+          </span>
+        ) : failure ? (
           <span className="text-rose-400">{t.failures[failure]}</span>
         ) : (
           <>
