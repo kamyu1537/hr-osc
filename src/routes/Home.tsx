@@ -91,12 +91,10 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
           ) : (
             <HeartIcon className={cn('size-8', connected ? 'text-red-400' : 'text-neutral-500')} />
           )}
-          {connected && (
-            <>
-              <span className="text-[20px] tabular-nums text-red-400">{heartRate}</span>
-              <span className="text-[10px] tabular-nums text-neutral-500">{Math.round(percent * 100)}%</span>
-            </>
-          )}
+          <span className={cn('text-[20px] tabular-nums', connected ? 'text-red-400' : 'text-neutral-400')}>
+            {connected ? heartRate : '-'}
+          </span>
+          {connected && <span className="text-[10px] tabular-nums text-neutral-500">{Math.round(percent * 100)}%</span>}
         </div>
       </div>
 
