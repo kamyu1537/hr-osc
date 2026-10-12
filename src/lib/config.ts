@@ -61,6 +61,7 @@ export async function getConfig() {
     }
   } catch (err) {
     console.error(err);
+    await writeTextFile('data/config.json.bak', read, { baseDir: BaseDirectory.AppConfig });
     await writeDefaultConfig();
   }
 
