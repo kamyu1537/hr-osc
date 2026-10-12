@@ -95,11 +95,12 @@ public static class VerifyProcess
 
     public static void Kill(IntPtr handle)
     {
-        if (!TerminateProcess(handle, 1) && !HasExited(handle))
+        bool terminated = TerminateProcess(handle, 1);
+        int error = Marshal.GetLastWin32Error();
+        if (WaitForSingleObject(handle, 5000) != 0 && !terminated)
         {
-            throw new Win32Exception();
+            throw new Win32Exception(error);
         }
-        WaitForSingleObject(handle, 5000);
     }
 }
 '@
