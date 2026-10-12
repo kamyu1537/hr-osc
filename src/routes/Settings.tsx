@@ -1,67 +1,93 @@
-import React, { useState } from 'react';
-import General from '../components/settings/General';
-import Http from '../components/settings/Http';
-import OSC from '../components/settings/OSC';
-import Parameters from '../components/settings/Parameters';
-import Stromno from '../components/settings/Stromno';
-import { defaultConfig, IConfig } from '../lib/config';
+import ConfigField, { Parse } from '../components/ConfigField';
+import { defaultConfig, IConfig, saveConfig, serviceLabels } from '../lib/config';
+import { startHttpServer, stopHttpServer } from '../lib/http_server';
 import { useConfig } from '../lib/states';
-import { cn } from '../lib/utils';
 
-const settings = [
-  {
-    label: 'General',
-    component: <General />,
-  },
-  {
-    label: 'Pulsoid',
-    component: <Stromno />,
-    visible: (config: IConfig) => {
-      return config.service_type === 'stromno';
-    },
-  },
-  {
-    label: 'HTTP',
-    component: <Http />,
-    visible: (config: IConfig) => {
-      return config.service_type === 'http';
-    },
-  },
-  {
-    label: 'OSC',
-    component: <OSC />,
-  },
-  {
-    label: 'Parameters',
-    component: <Parameters />,
-  },
-];
+const port: Parse<number> = (raw) => {
+  const value = Number(raw);
+  return raw.trim() !== '' && Number.isInteger(value) && value >= 1 && value <= 65535
+    ? { value }
+    : { error: 'Enter a port from 1 to 65535' };
+};
+
+const positive: Parse<number> = (raw) => {
+  const value = Number(raw);
+  return raw.trim() !== '' && Number.isFinite(value) && value > 0
+    ? { value }
+    : { error: 'Enter a number greater than 0' };
+};
+
+const required: Parse<string> = (raw) => (raw.trim() ? { value: raw.trim() } : { error: 'Required' });
+
+const optional: Parse<string> = (raw) => ({ value: raw.trim() });
+
+const latestConfig = () => useConfig.getState().config ?? defaultConfig;
+
+const handleServiceChange = (service: IConfig['service_type']) => {
+  saveConfig({ ...latestConfig(), service_type: service });
+  if (service !== 'http') {
+    stopHttpServer();
+  }
+};
+
+const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
+  <section aria-labelledby={id} className="flex flex-col gap-2">
+    <h2 id={id} className="text-[11px] uppercase tracking-wider text-neutral-400">
+      {title}
+    </h2>
+    {children}
+  </section>
+);
 
 const Settings = () => {
-  const { config } = useConfig();
-  const [setting, setSetting] = useState(0);
+  const serviceType = useConfig((state) => state.config?.service_type ?? defaultConfig.service_type);
 
   return (
-    <div className="flex pt-2 gap-2 h-full">
-      <div className="flex flex-col gap-2">
-        {settings.map((item, idx) => {
-          if (item.visible != null && !item.visible(config || defaultConfig)) {
-            return <React.Fragment key={idx} />;
-          }
+    <div className="h-full overflow-y-auto pr-1 pb-1 flex flex-col gap-4">
+      <Section id="source-heading" title="Heart rate source">
+        <div>
+          <label htmlFor="service_type" className="mb-0.5 block text-xs text-neutral-300">
+            Source
+          </label>
+          <select
+            id="service_type"
+            className="input"
+            value={serviceType}
+            onChange={(e) => handleServiceChange(e.target.value as IConfig['service_type'])}
+          >
+            {Object.entries(serviceLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          return (
-            <button
-              key={idx}
-              onClick={() => setSetting(idx)}
-              className={cn('bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded-md', setting === idx && 'text-cyan-400')}
-            >
-              {item.label}
+        {serviceType === 'http' ? (
+          <>
+            <ConfigField name="http_server_port" label="HTTP server port" type="number" parse={port} />
+            <button className="btn self-start" onClick={() => startHttpServer(latestConfig())}>
+              Restart server
             </button>
-          );
-        })}
-      </div>
+          </>
+        ) : (
+          <>
+            <ConfigField name="stromno_widget_id" label="Widget ID" parse={optional} />
+            <button className="btn self-start" onClick={() => saveConfig({ ...latestConfig() })}>
+              Reconnect
+            </button>
+          </>
+        )}
+      </Section>
 
-      <div className="overflow-y-auto">{settings[setting].component}</div>
+      <Section id="osc-heading" title="OSC output">
+        <ConfigField name="osc_client_host" label="Host" parse={required} />
+        <ConfigField name="osc_client_port" label="Port" type="number" parse={port} />
+        <ConfigField name="osc_path_connected" label="Connected parameter path" parse={required} />
+        <ConfigField name="osc_path_percent" label="HR percent parameter path" parse={required} />
+        <ConfigField name="max_heart_rate" label="Max heart rate" type="number" parse={positive} />
+        <ConfigField name="connected_timeout" label="Connected timeout (seconds)" type="number" parse={positive} />
+      </Section>
     </div>
   );
 };
