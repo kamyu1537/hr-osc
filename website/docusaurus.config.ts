@@ -39,6 +39,7 @@ const config: Config = {
           editUrl: 'https://github.com/kamyu1537/hr-osc/tree/dev/website/',
         },
         blog: false,
+        theme: { customCss: './src/css/custom.css' },
       } satisfies Preset.Options,
     ],
   ],
