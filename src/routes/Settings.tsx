@@ -1,3 +1,4 @@
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useState } from 'react';
 import ConfigField, { Parse } from '../components/ConfigField';
 import { defaultConfig, IConfig, saveConfig, services } from '../lib/config';
@@ -34,7 +35,7 @@ const latestConfig = () => useConfig.getState().config ?? defaultConfig;
 
 const handleServiceChange = (service: IConfig['service_type']) => {
   saveConfig({ ...latestConfig(), service_type: service });
-  if (service !== 'http') {
+  if (services[service].kind !== 'http') {
     stopHttpServer();
   }
 };
@@ -42,6 +43,7 @@ const handleServiceChange = (service: IConfig['service_type']) => {
 const SourcePanel = () => {
   const serviceType = useConfig((state) => state.config?.service_type ?? defaultConfig.service_type);
   const httpPort = useConfig((state) => state.config?.http_server_port ?? defaultConfig.http_server_port);
+  const service = services[serviceType];
 
   return (
     <>
@@ -63,7 +65,7 @@ const SourcePanel = () => {
         </select>
       </div>
 
-      {serviceType === 'http' ? (
+      {service.kind === 'http' ? (
         <ConfigField
           key="http_server_port"
           name="http_server_port"
@@ -73,7 +75,12 @@ const SourcePanel = () => {
           hint={`POST bpm as text to http://127.0.0.1:${httpPort}`}
         />
       ) : (
-        <ConfigField key="stromno_widget_id" name="stromno_widget_id" label="Widget ID" parse={optional} />
+        <div>
+          <ConfigField key="stromno_widget_id" name="stromno_widget_id" label="Widget ID" parse={optional} />
+          <button className="link mt-1 text-[10px] leading-[13px]" onClick={() => openUrl(service.widgetIdUrl)}>
+            Find your widget ID at {new URL(service.widgetIdUrl).host}
+          </button>
+        </div>
       )}
 
       <ConfigField
@@ -90,7 +97,7 @@ const SourcePanel = () => {
 const SourceAction = () => {
   const serviceType = useConfig((state) => state.config?.service_type ?? defaultConfig.service_type);
 
-  return serviceType === 'http' ? (
+  return services[serviceType].kind === 'http' ? (
     <button className="btn" onClick={() => startHttpServer(latestConfig())}>
       Restart server
     </button>

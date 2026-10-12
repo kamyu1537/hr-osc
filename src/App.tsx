@@ -5,7 +5,7 @@ import Loading from './components/Loading';
 import NavBar from './components/NavBar';
 import WebSocketService from './components/WebSocketService';
 import useUpdate from './hooks/useUpdate';
-import { getConfig } from './lib/config';
+import { getConfig, services } from './lib/config';
 import { useConfig } from './lib/states';
 import About from './routes/About';
 import Home from './routes/Home';
@@ -34,10 +34,9 @@ const App = () => {
   return (
     <MemoryRouter>
       {update && Update}
-      {config.service_type === 'http' && (
+      {services[config.service_type].kind === 'http' ? (
         <HttpService setConnected={setConnected} setHeartRate={setHeartRate} setFailure={setFailure} />
-      )}
-      {config.service_type === 'stromno' && (
+      ) : (
         <WebSocketService setConnected={setConnected} setHeartRate={setHeartRate} setFailure={setFailure} />
       )}
 

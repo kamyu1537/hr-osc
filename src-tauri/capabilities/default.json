@@ -18,7 +18,12 @@
     },
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://github.com/*" }, { "url": "https://twitter.com/*" }]
+      "allow": [
+        { "url": "https://github.com/*" },
+        { "url": "https://twitter.com/*" },
+        { "url": "https://pulsoid.net/*" },
+        { "url": "https://app.stromno.com/*" }
+      ]
     }
   ]
 }

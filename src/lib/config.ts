@@ -16,9 +16,22 @@ export const defaultConfig: IConfig = {
   osc_client_port: 9000,
 };
 
-export const services: Record<IConfig['service_type'], { label: string; chip: string }> = {
-  stromno: { label: 'Pulsoid (Legacy) / Stromno', chip: 'border-[#cab41f]/30 text-[#cab41f]' },
-  http: { label: 'HTTP', chip: 'border-[#34d399]/30 text-[#34d399]' },
+type Service = { label: string; chip: string } & ({ kind: 'http' } | { kind: 'widget'; widgetIdUrl: string });
+
+export const services: Record<IConfig['service_type'], Service> = {
+  pulsoid_legacy: {
+    label: 'Pulsoid (Legacy)',
+    chip: 'border-[#2fb6c4]/30 text-[#2fb6c4]',
+    kind: 'widget',
+    widgetIdUrl: 'https://pulsoid.net/ui/configuration',
+  },
+  stromno: {
+    label: 'Stromno',
+    chip: 'border-[#cab41f]/30 text-[#cab41f]',
+    kind: 'widget',
+    widgetIdUrl: 'https://app.stromno.com/dashboard',
+  },
+  http: { label: 'HTTP', chip: 'border-[#34d399]/30 text-[#34d399]', kind: 'http' },
 };
 
 async function writeDefaultConfig() {
@@ -37,6 +50,9 @@ export async function getConfig() {
   try {
     const parse = JSON.parse(read);
     config = { ...config, ...parse };
+    if (!Object.hasOwn(services, config.service_type)) {
+      config.service_type = defaultConfig.service_type;
+    }
   } catch (err) {
     console.error(err);
     await writeDefaultConfig();
@@ -60,7 +76,7 @@ export async function saveConfig(config: IConfig) {
 }
 
 export interface IConfig {
-  service_type: 'http' | 'stromno';
+  service_type: 'pulsoid_legacy' | 'stromno' | 'http';
   http_server_port: number;
   stromno_widget_id: string;
 
