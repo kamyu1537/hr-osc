@@ -2,6 +2,8 @@
 
 Heartrate OSC for VRChat
 
+[Docs](https://kamyu1537.github.io/hr-osc/)
+
 ## Download
 
 [Release](https://github.com/kamyu1537/hr-osc/releases)
