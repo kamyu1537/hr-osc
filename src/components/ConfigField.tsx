@@ -12,10 +12,15 @@ type ConfigFieldProps<K extends FieldKey> = {
   parse: Parse<IConfig[K]>;
   type?: 'text' | 'number';
   hint?: string;
+  prefix?: string;
 };
 
-const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hint }: ConfigFieldProps<K>) => {
-  const [raw, setRaw] = useState(() => String(useConfig.getState().config?.[name] ?? ''));
+const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hint, prefix }: ConfigFieldProps<K>) => {
+  const [raw, setRaw] = useState(() => {
+    const stored = String(useConfig.getState().config?.[name] ?? '');
+    if (!prefix) return stored;
+    return stored.startsWith(prefix) ? stored.slice(prefix.length) : stored.slice(stored.lastIndexOf('/') + 1);
+  });
   const [error, setError] = useState('');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -35,7 +40,7 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
     setStatus('saving');
     timer.current = setTimeout(async () => {
       try {
-        await saveConfig({ ...(useConfig.getState().config ?? defaultConfig), [name]: result.value });
+        await saveConfig({ ...(useConfig.getState().config ?? defaultConfig), [name]: prefix ? prefix + result.value : result.value });
         setStatus('saved');
       } catch (err) {
         console.error(err);

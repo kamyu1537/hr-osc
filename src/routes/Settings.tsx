@@ -30,6 +30,15 @@ const seconds: Parse<number> = (raw) => {
 
 const required: Parse<string> = (raw) => (raw.trim() ? { value: raw.trim() } : { error: 'Required' });
 
+const OSC_PREFIX = '/avatar/parameters/';
+
+const oscName: Parse<string> = (raw) => {
+  if (raw === '') return { error: 'Required' };
+  if (raw.startsWith('/')) return { error: 'Enter the name without a leading /' };
+  if (/\s/.test(raw)) return { error: 'Spaces are not allowed' };
+  return { value: raw };
+};
+
 const optional: Parse<string> = (raw) => ({ value: raw.trim() });
 
 const latestConfig = () => useConfig.getState().config ?? defaultConfig;
@@ -122,15 +131,17 @@ const ParametersPanel = () => (
   <>
     <ConfigField
       name="osc_path_connected"
-      label="Connected path"
-      parse={required}
-      hint={`Default: ${defaultConfig.osc_path_connected}`}
+      label="Connected parameter"
+      prefix={OSC_PREFIX}
+      parse={oscName}
+      hint={`Default: ${defaultConfig.osc_path_connected.slice(OSC_PREFIX.length)}`}
     />
     <ConfigField
       name="osc_path_percent"
-      label="Percent path"
-      parse={required}
-      hint={`Default: ${defaultConfig.osc_path_percent}`}
+      label="Percent parameter"
+      prefix={OSC_PREFIX}
+      parse={oscName}
+      hint={`Default: ${defaultConfig.osc_path_percent.slice(OSC_PREFIX.length)}`}
     />
     <ConfigField
       name="max_heart_rate"
