@@ -37,8 +37,8 @@ async fn send_bool(host: String, port: u16, path: String, value: bool) -> Result
 }
 
 #[tauri::command]
-async fn start_http_server(port: u16) -> Result<(), String> {
-    http_server::start_server(port)
+async fn start_http_server(port: u16, lan: bool) -> Result<(), String> {
+    http_server::start_server(port, lan)
         .await
         .inspect_err(|err| log::error!("Error starting HTTP server: {err}"))
 }

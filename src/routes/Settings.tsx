@@ -73,8 +73,10 @@ const SourcePanel = () => {
   const t = useStrings();
   const serviceType = useConfig((state) => state.config?.service_type ?? defaultConfig.service_type);
   const httpPort = useConfig((state) => state.config?.http_server_port ?? defaultConfig.http_server_port);
+  const httpLan = useConfig((state) => state.config?.http_server_lan ?? defaultConfig.http_server_lan);
   const service = services[serviceType];
   const [saveFailed, trackSave] = useSaveFailure();
+  const [lanSaveFailed, trackLanSave] = useSaveFailure();
 
   return (
     <>
@@ -106,14 +108,36 @@ const SourcePanel = () => {
       </div>
 
       {service.kind === 'http' ? (
-        <ConfigField
-          key="http_server_port"
-          name="http_server_port"
-          label={t.settings.httpPort}
-          type="number"
-          parse={port}
-          hint={t.settings.httpHint(`http://127.0.0.1:${httpPort}`)}
-        />
+        <>
+          <ConfigField
+            key="http_server_port"
+            name="http_server_port"
+            label={t.settings.httpPort}
+            type="number"
+            parse={port}
+            hint={t.settings.httpHint(`http://127.0.0.1:${httpPort}`)}
+          />
+          <div className="field">
+            <label htmlFor="http_server_lan" className="field-label">
+              {t.settings.httpLan}
+            </label>
+            <div className="flex h-6 items-center">
+              <input
+                id="http_server_lan"
+                type="checkbox"
+                className="size-3.5 accent-neutral-200"
+                checked={httpLan}
+                aria-invalid={lanSaveFailed}
+                aria-describedby={lanSaveFailed ? 'http_server_lan-error http_server_lan-hint' : 'http_server_lan-hint'}
+                onChange={(e) => trackLanSave(saveConfig({ ...latestConfig(), http_server_lan: e.target.checked }))}
+              />
+            </div>
+            {lanSaveFailed && <SaveError id="http_server_lan-error" />}
+            <p id="http_server_lan-hint" className="col-start-2 mt-1 text-[10px] leading-[13px] text-neutral-400">
+              {t.settings.httpLanHint}
+            </p>
+          </div>
+        </>
       ) : (
         <ConfigField
           key="stromno_widget_id"

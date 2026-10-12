@@ -80,13 +80,14 @@ pub async fn stop_server() {
     stop(&mut *HTTP_HEARTRATE_RECEIVER.server.lock().await).await;
 }
 
-pub async fn start_server(port: u16) -> Result<(), String> {
+pub async fn start_server(port: u16, lan: bool) -> Result<(), String> {
     log::debug!("start http server: {}", port);
     let mut server = HTTP_HEARTRATE_RECEIVER.server.lock().await;
     stop(&mut server).await;
 
     let generation = HTTP_HEARTRATE_RECEIVER.generation.load(Ordering::SeqCst);
-    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    let ip = if lan { [0, 0, 0, 0] } else { [127, 0, 0, 1] };
+    let addr = SocketAddr::from((ip, port));
     let app = Router::new()
         .route("/", get(root))
         .route(
@@ -154,7 +155,7 @@ mod tests {
         let busy = std::net::TcpListener::bind(("0.0.0.0", 0)).unwrap();
         let port = busy.local_addr().unwrap().port();
 
-        let err = timeout(Duration::from_secs(1), start_server(port))
+        let err = timeout(Duration::from_secs(1), start_server(port, true))
             .await
             .expect("start_server blocked")
             .unwrap_err();
@@ -164,7 +165,7 @@ mod tests {
             .expect("stop_server blocked");
 
         drop(busy);
-        timeout(Duration::from_secs(1), start_server(port))
+        timeout(Duration::from_secs(1), start_server(port, true))
             .await
             .expect("start_server blocked")
             .unwrap();
@@ -190,7 +191,7 @@ mod tests {
             .local_addr()
             .unwrap()
             .port();
-        timeout(Duration::from_secs(1), start_server(next_port))
+        timeout(Duration::from_secs(1), start_server(next_port, true))
             .await
             .expect("start_server blocked")
             .unwrap();
@@ -207,5 +208,42 @@ mod tests {
             .await
             .expect("stop_server blocked");
         std::net::TcpListener::bind(("0.0.0.0", next_port)).unwrap();
+
+        let busy = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let local_port = busy.local_addr().unwrap().port();
+        let err = timeout(Duration::from_secs(1), start_server(local_port, false))
+            .await
+            .expect("start_server blocked")
+            .unwrap_err();
+        assert!(
+            err.starts_with(&format!("127.0.0.1:{local_port}: ")),
+            "{err}"
+        );
+
+        drop(busy);
+        timeout(Duration::from_secs(1), start_server(local_port, false))
+            .await
+            .expect("start_server blocked")
+            .unwrap();
+        for (body, heartrate) in [("300", 300), ("0", 0)] {
+            let response = post(local_port, body).await;
+            assert!(response.ends_with("\r\n\r\nok"), "{body}: {response}");
+            assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, heartrate);
+        }
+        timeout(Duration::from_secs(1), stop_server())
+            .await
+            .expect("stop_server blocked");
+    }
+
+    async fn post(port: u16, body: &str) -> String {
+        let mut client = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+        let request = format!(
+            "POST / HTTP/1.1\r\nhost: localhost\r\ncontent-length: {}\r\n\r\n{body}",
+            body.len()
+        );
+        client.write_all(request.as_bytes()).await.unwrap();
+        let mut response = String::new();
+        client.read_to_string(&mut response).await.unwrap();
+        response
     }
 }

@@ -61,7 +61,7 @@ const HttpService = ({ setConnected, setHeartRate, setFailure }: ServiceProps) =
         clearInterval(interval);
       }
     };
-  }, [serverPort, reconnectRequest]);
+  }, [serverPort, config?.http_server_lan, reconnectRequest]);
 
   return <></>;
 };

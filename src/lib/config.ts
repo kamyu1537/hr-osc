@@ -6,6 +6,7 @@ import { useConfig } from './states';
 export const defaultConfig: IConfig = {
   service_type: 'stromno',
   http_server_port: 8080,
+  http_server_lan: false,
   stromno_widget_id: '',
 
   osc_path_connected: '/avatar/parameters/hr_connected',
@@ -68,7 +69,7 @@ export async function getConfig() {
   const read = await readFile('data/config.json', { baseDir: BaseDirectory.AppConfig });
   try {
     const parse = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read));
-    config = { ...config, ...parse };
+    config = { ...config, http_server_lan: true, ...parse };
     if (!Object.hasOwn(services, config.service_type)) {
       config.service_type = defaultConfig.service_type;
     }
@@ -101,6 +102,7 @@ export async function saveConfig(config: IConfig) {
 export interface IConfig {
   service_type: 'pulsoid_legacy' | 'stromno' | 'http';
   http_server_port: number;
+  http_server_lan: boolean;
   stromno_widget_id: string;
 
   connected_timeout: number;
