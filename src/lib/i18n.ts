@@ -66,7 +66,7 @@ const ko: Strings = {
   },
   home: {
     connected: '연결됨',
-    disconnected: '연결 끊김',
+    disconnected: '연결 안 됨',
     restartServer: '서버 재시작',
     reconnect: '다시 연결',
   },
