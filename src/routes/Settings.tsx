@@ -6,7 +6,13 @@ import { defaultConfig, IConfig, saveConfig, services } from '../lib/config';
 import { stopHttpServer } from '../lib/http_server';
 import { Language, LanguageSetting, Strings, useStrings } from '../lib/i18n';
 import { getAddr } from '../lib/osc';
-import { getPulsoidToken, setPulsoidToken } from '../lib/pulsoid';
+import {
+  getPulsoidToken,
+  pollPulsoidToken,
+  PulsoidDeviceCode,
+  requestPulsoidDeviceCode,
+  setPulsoidToken,
+} from '../lib/pulsoid';
 import { useConfig } from '../lib/states';
 import useSourceAction from '../hooks/useSourceAction';
 import { cn } from '../lib/utils';
@@ -92,7 +98,7 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
     );
   }, []);
 
-  const handleChange = (next: string) => {
+  const handleChange = (next: string, delay = 500) => {
     edited.current = true;
     setToken(next);
     setFailed(false);
@@ -114,7 +120,7 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
           setStatus('idle');
         },
       );
-    }, 500);
+    }, delay);
   };
 
   return (
@@ -155,6 +161,92 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
           )}
         </span>
       </div>
+      <PulsoidLogin onToken={(next) => handleChange(next, 0)} />
+    </div>
+  );
+};
+
+type LoginState =
+  | { step: 'idle' }
+  | { step: 'waiting'; device?: PulsoidDeviceCode }
+  | { step: 'done' }
+  | { step: 'failed'; reason: 'denied' | 'expired' | 'error' };
+
+const PulsoidLogin = ({ onToken }: { onToken: (token: string) => void }) => {
+  const t = useStrings();
+  const [state, setState] = useState<LoginState>({ step: 'idle' });
+  const controller = useRef<AbortController>(undefined);
+
+  useEffect(() => () => controller.current?.abort(), []);
+
+  const start = async () => {
+    controller.current?.abort();
+    const current = new AbortController();
+    controller.current = current;
+    setState({ step: 'waiting' });
+    try {
+      const device = await requestPulsoidDeviceCode();
+      current.signal.throwIfAborted();
+      setState({ step: 'waiting', device });
+      openUrl(device.verificationUriComplete).catch(console.error);
+      const result = await pollPulsoidToken(device, current.signal);
+      current.signal.throwIfAborted();
+      if ('token' in result) {
+        onToken(result.token);
+        setState({ step: 'done' });
+      } else {
+        setState({ step: 'failed', reason: result.failure });
+      }
+    } catch (err) {
+      if (current.signal.aborted) return;
+      console.error(err);
+      setState({ step: 'failed', reason: 'error' });
+    }
+  };
+
+  const cancel = () => {
+    controller.current?.abort();
+    setState({ step: 'idle' });
+  };
+
+  const device = state.step === 'waiting' ? state.device : undefined;
+
+  return (
+    <div className="col-start-2 mt-1.5 flex min-w-0 flex-col items-start gap-1">
+      {state.step === 'waiting' ? (
+        <button className="btn" onClick={cancel}>
+          {t.settings.login.cancel}
+        </button>
+      ) : (
+        <button className="btn" onClick={start}>
+          {t.settings.login.start}
+        </button>
+      )}
+      <p aria-live="polite" className="min-w-0 text-[10px] leading-[13px]">
+        {state.step === 'waiting' && (
+          <span className="text-neutral-400">
+            {t.settings.login.waiting}
+            {device && (
+              <>
+                {' '}
+                <button className="link" onClick={() => openUrl(device.verificationUriComplete)}>
+                  {t.settings.login.reopen}
+                </button>
+              </>
+            )}
+          </span>
+        )}
+        {state.step === 'done' && (
+          <span className="inline-flex items-center gap-0.5 text-neutral-400">
+            <CheckIcon className="size-3" aria-hidden="true" />
+            {t.settings.login.success}
+          </span>
+        )}
+        {state.step === 'failed' && <span className="text-rose-400">{t.settings.login[state.reason]}</span>}
+      </p>
+      {device && (
+        <p className="max-w-full truncate text-[10px] leading-[13px] text-neutral-500">{t.settings.login.code(device.userCode)}</p>
+      )}
     </div>
   );
 };
