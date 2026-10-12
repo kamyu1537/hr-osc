@@ -64,23 +64,24 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
         className="input"
         value={raw}
         aria-invalid={error !== ''}
-        aria-describedby={error ? errorId : hint ? hintId : undefined}
+        aria-describedby={[error && errorId, hint && hintId].filter(Boolean).join(' ') || undefined}
         onChange={(e) => handleChange(e.target.value)}
       />
       {(error || hint || status !== 'idle') && (
         <div className="col-start-2 mt-1 flex min-w-0 items-start">
-          {error ? (
-            <p id={errorId} className="flex items-start gap-1 text-[11px] leading-[13px] text-rose-400">
-              <ExclamationCircleIcon className="mt-px size-3 shrink-0" aria-hidden="true" />
-              {error}
-            </p>
-          ) : (
-            hint && (
+          <div className="min-w-0">
+            {error && (
+              <p id={errorId} className="flex items-start gap-1 text-[11px] leading-[13px] text-rose-400">
+                <ExclamationCircleIcon className="mt-px size-3 shrink-0" aria-hidden="true" />
+                {error}
+              </p>
+            )}
+            {hint && (
               <p id={hintId} className="min-w-0 text-[10px] leading-[13px] text-neutral-400">
                 {hint}
               </p>
-            )
-          )}
+            )}
+          </div>
           <span aria-live="polite" className="ml-auto shrink-0 text-[10px] leading-[13px] text-neutral-400">
             {!error && status === 'saving' && <span className="pl-2">Saving...</span>}
             {!error && status === 'saved' && (
