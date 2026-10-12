@@ -3,14 +3,16 @@ import { ArrowPathIcon } from '@heroicons/react/16/solid';
 import { useLayoutEffect, useRef } from 'react';
 import useSourceAction from '../hooks/useSourceAction';
 import { IConfig, services } from '../lib/config';
+import { useStrings } from '../lib/i18n';
 import { getAddr } from '../lib/osc';
+import { Failure } from '../lib/service';
 import { cn } from '../lib/utils';
 
 type HomeProps = {
   config: IConfig;
   connected: boolean;
   heartRate: number;
-  failure: string;
+  failure: Failure;
 };
 
 const RING_CIRCUMFERENCE = 2 * Math.PI * 16;
@@ -38,6 +40,7 @@ const Heartbeat = ({ bpm }: { bpm: number }) => {
 };
 
 const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
+  const t = useStrings();
   const recovery = useSourceAction();
   const percent = config.max_heart_rate > 0 ? Math.min(1, Math.max(0, heartRate / config.max_heart_rate)) : 0;
 
@@ -64,7 +67,7 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
               connected ? 'border-lime-500/30 text-lime-500' : 'border-neutral-400/30 text-neutral-400'
             )}
           >
-            {connected ? 'Connected' : 'Disconnected'}
+            {connected ? t.home.connected : t.home.disconnected}
           </span>
         </div>
       </div>
@@ -100,7 +103,7 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
 
       <div className="mt-4 mb-auto text-center text-[11px]">
         {failure ? (
-          <span className="text-rose-400">{failure}</span>
+          <span className="text-rose-400">{t.failures[failure]}</span>
         ) : (
           <>
             <span className="text-neutral-500">OSC</span>{' '}

@@ -3,8 +3,10 @@ import { getVersion } from '@tauri-apps/api/app';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useEffect, useState } from 'react';
 import appIcon from '../assets/images/icon.png';
+import { useStrings } from '../lib/i18n';
 
 const About = () => {
+  const t = useStrings();
   const [version, setVersion] = useState('');
 
   useEffect(() => {
@@ -51,7 +53,7 @@ const About = () => {
 
       <button className="btn mt-3 py-px text-[11px] leading-[normal]" onClick={handleOpenSponsor}>
         <HeartIcon className="size-2.5 text-red-400" />
-        Support the developer
+        {t.about.support}
       </button>
     </div>
   );

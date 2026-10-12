@@ -1,4 +1,5 @@
 import { BaseDirectory, exists, mkdir, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
+import { LanguageSetting, languageSettings } from './i18n';
 import { useConfig } from './states';
 
 export const defaultConfig: IConfig = {
@@ -14,6 +15,8 @@ export const defaultConfig: IConfig = {
 
   osc_client_host: '127.0.0.1',
   osc_client_port: 9000,
+
+  language: 'auto',
 };
 
 type Service = { label: string; chip: string } & ({ kind: 'http' } | { kind: 'widget'; widgetIdUrl: string });
@@ -53,6 +56,9 @@ export async function getConfig() {
     if (!Object.hasOwn(services, config.service_type)) {
       config.service_type = defaultConfig.service_type;
     }
+    if (!languageSettings.includes(config.language)) {
+      config.language = defaultConfig.language;
+    }
   } catch (err) {
     console.error(err);
     await writeDefaultConfig();
@@ -88,4 +94,6 @@ export interface IConfig {
 
   osc_client_host: string;
   osc_client_port: number;
+
+  language: LanguageSetting;
 }

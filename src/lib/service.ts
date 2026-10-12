@@ -1,10 +1,13 @@
 import { getConfig } from './config';
+import { Strings } from './i18n';
 import { sendOscBool, sendOscFloat } from './osc';
+
+export type Failure = keyof Strings['failures'] | '';
 
 export type ServiceProps = {
   setConnected: (connected: boolean) => void;
   setHeartRate: (heartRate: number) => void;
-  setFailure: (reason: string) => void;
+  setFailure: (reason: Failure) => void;
 };
 
 let timeout: ReturnType<typeof setTimeout> | undefined;

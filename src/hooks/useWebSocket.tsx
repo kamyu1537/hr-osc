@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { connected, disconnected, getTimeoutSeconds, sendOscHeartRate } from '../lib/service';
+import { connected, disconnected, Failure, getTimeoutSeconds, sendOscHeartRate } from '../lib/service';
 import { useConfig } from '../lib/states';
 import { getWebSocketUrl } from '../lib/stromno';
 
@@ -12,7 +12,7 @@ type HeartRateData = {
 let timeout: ReturnType<typeof setTimeout>;
 let socket: WebSocket | null = null;
 
-const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void, onFailure?: (reason: string) => void) => {
+const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void, onFailure?: (reason: Failure) => void) => {
   const config = useConfig((state) => state.config);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       if (socket) socket.close();
       clearTimeout(timeout);
       onDisconnect?.();
-      onFailure?.('No widget ID set');
+      onFailure?.('noWidgetId');
       return () => onFailure?.('');
     }
 
@@ -39,7 +39,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
         if (active) {
           clearTimeout(timeout);
           onDisconnect?.();
-          onFailure?.('Failed to get WebSocket URL');
+          onFailure?.('noWebSocketUrl');
         }
         return;
       }

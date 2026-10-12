@@ -1,11 +1,14 @@
 import { CheckIcon } from '@heroicons/react/16/solid';
 import { ReactNode, useRef, useState } from 'react';
 import { defaultConfig, IConfig, saveConfig } from '../lib/config';
+import { Strings, useStrings } from '../lib/i18n';
 import { useConfig } from '../lib/states';
 
-type FieldKey = Exclude<keyof IConfig, 'service_type'>;
+type FieldKey = Exclude<keyof IConfig, 'service_type' | 'language'>;
 
-export type Parse<T> = (raw: string) => { value: T } | { error: string };
+type ErrorKey = keyof Strings['errors'];
+
+export type Parse<T> = (raw: string) => { value: T } | { error: ErrorKey };
 
 type ConfigFieldProps<K extends FieldKey> = {
   name: K;
@@ -21,7 +24,8 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
     const stored = String(useConfig.getState().config?.[name] ?? '');
     return prefix && stored.startsWith(prefix) ? stored.slice(prefix.length) : stored;
   });
-  const [error, setError] = useState('');
+  const t = useStrings();
+  const [error, setError] = useState<ErrorKey | ''>('');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -44,7 +48,7 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
         setStatus('saved');
       } catch (err) {
         console.error(err);
-        setError('Could not save');
+        setError('save');
         setStatus('idle');
       }
     }, 500);
@@ -72,7 +76,7 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
           <div className="min-w-0">
             {error && (
               <p id={errorId} className="text-[10px] leading-[13px] text-rose-400">
-                {error}
+                {t.errors[error]}
               </p>
             )}
             {hint && (
@@ -82,11 +86,11 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
             )}
           </div>
           <span aria-live="polite" className="ml-auto shrink-0 text-[10px] leading-[13px] text-neutral-400">
-            {!error && status === 'saving' && <span className="pl-2">Saving...</span>}
+            {!error && status === 'saving' && <span className="pl-2">{t.settings.saving}</span>}
             {!error && status === 'saved' && (
               <span className="inline-flex items-center gap-0.5 pl-2">
                 <CheckIcon className="size-3" aria-hidden="true" />
-                Saved
+                {t.settings.saved}
               </span>
             )}
           </span>

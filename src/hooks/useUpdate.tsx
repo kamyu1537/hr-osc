@@ -2,8 +2,10 @@ import { getVersion } from '@tauri-apps/api/app';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useState } from 'react';
 import semver from 'semver';
+import { useStrings } from '../lib/i18n';
 
 const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
+  const t = useStrings();
   const [update, setUpdate] = useState<string>('');
 
   const checkUpdate = async () => {
@@ -42,11 +44,11 @@ const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
     update,
     checkUpdate,
     <div role="status" className="flex shrink-0 items-center gap-2 bg-neutral-900 px-2 py-0.5 text-[11px] text-neutral-300">
-      <span>Version {update} is available</span>
+      <span>{t.update.available(update)}</span>
       <button onClick={handleClickUpdate} className="link">
-        Download
+        {t.update.download}
       </button>
-      <button onClick={handleClickLater} aria-label="Dismiss update notice" className="ml-auto px-1 text-[13px] leading-none text-neutral-400 hover:text-white">
+      <button onClick={handleClickLater} aria-label={t.update.dismiss} className="ml-auto px-1 text-[13px] leading-none text-neutral-400 hover:text-white">
         ×
       </button>
     </div>,

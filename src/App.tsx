@@ -6,6 +6,8 @@ import NavBar from './components/NavBar';
 import WebSocketService from './components/WebSocketService';
 import useUpdate from './hooks/useUpdate';
 import { getConfig, services } from './lib/config';
+import { useLanguage } from './lib/i18n';
+import { Failure } from './lib/service';
 import { useConfig } from './lib/states';
 import About from './routes/About';
 import Home from './routes/Home';
@@ -16,8 +18,9 @@ const App = () => {
   const [update, checkUpdate, Update] = useUpdate();
   const [connected, setConnected] = useState(false);
   const [heartRate, setHeartRate] = useState(0);
-  const [failure, setFailure] = useState('');
+  const [failure, setFailure] = useState<Failure>('');
   const { config, setConfig } = useConfig();
+  const language = useLanguage();
 
   useEffect(() => {
     (async () => {
@@ -26,6 +29,10 @@ const App = () => {
       setLoaded(true);
     })();
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   if (!loaded || config == null) {
     return <Loading />;
