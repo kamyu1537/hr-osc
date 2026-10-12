@@ -5,6 +5,8 @@ import { useConfig } from './states';
 
 export type Failure = keyof Strings['failures'] | '';
 
+export type Endpoint = { url: string } | { failure: Exclude<Failure, ''>; retry: boolean };
+
 export type ServiceProps = {
   setConnected: (connected: boolean) => void;
   setHeartRate: (heartRate: number) => void;

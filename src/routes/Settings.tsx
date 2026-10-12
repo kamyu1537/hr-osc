@@ -1,11 +1,12 @@
-import { ChevronDownIcon } from '@heroicons/react/16/solid';
+import { CheckIcon, ChevronDownIcon } from '@heroicons/react/16/solid';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { ComponentType, useState } from 'react';
+import { ComponentType, useEffect, useRef, useState } from 'react';
 import ConfigField, { Parse } from '../components/ConfigField';
 import { defaultConfig, IConfig, saveConfig, services } from '../lib/config';
 import { stopHttpServer } from '../lib/http_server';
 import { Language, LanguageSetting, Strings, useStrings } from '../lib/i18n';
 import { getAddr } from '../lib/osc';
+import { getPulsoidToken, setPulsoidToken } from '../lib/pulsoid';
 import { useConfig } from '../lib/states';
 import useSourceAction from '../hooks/useSourceAction';
 import { cn } from '../lib/utils';
@@ -66,6 +67,95 @@ const SaveError = ({ id }: { id: string }) => {
     <p id={id} className="col-start-2 mt-1 text-[10px] leading-[13px] text-rose-400">
       {t.errors.save}
     </p>
+  );
+};
+
+const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
+  const t = useStrings();
+  const requestReconnect = useConfig((state) => state.requestReconnect);
+  const [token, setToken] = useState('');
+  const [failed, setFailed] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const edited = useRef(false);
+  const lastSave = useRef<Promise<unknown>>(Promise.resolve());
+
+  useEffect(() => {
+    getPulsoidToken().then(
+      (saved) => {
+        if (!edited.current) setToken(saved);
+      },
+      (err) => {
+        console.error(err);
+        setFailed(true);
+      },
+    );
+  }, []);
+
+  const handleChange = (next: string) => {
+    edited.current = true;
+    setToken(next);
+    setFailed(false);
+    setStatus('saving');
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      const save = lastSave.current.then(() => setPulsoidToken(next.trim()));
+      const settled = save.catch(() => undefined);
+      lastSave.current = settled;
+      save.then(
+        () => {
+          requestReconnect();
+          if (lastSave.current === settled) setStatus('saved');
+        },
+        (err) => {
+          console.error(err);
+          if (lastSave.current !== settled) return;
+          setFailed(true);
+          setStatus('idle');
+        },
+      );
+    }, 500);
+  };
+
+  return (
+    <div className="field">
+      <label htmlFor="pulsoid_token" className="field-label">
+        {t.settings.token}
+      </label>
+      <input
+        id="pulsoid_token"
+        type="password"
+        autoComplete="off"
+        className="input"
+        value={token}
+        aria-invalid={failed}
+        aria-describedby={failed ? 'pulsoid_token-error pulsoid_token-hint' : 'pulsoid_token-hint'}
+        onChange={(e) => handleChange(e.target.value)}
+      />
+      <div className="col-start-2 mt-1 flex min-w-0 items-start">
+        <div className="min-w-0">
+          {failed && (
+            <p id="pulsoid_token-error" className="text-[10px] leading-[13px] text-rose-400">
+              {t.errors.save}
+            </p>
+          )}
+          <p id="pulsoid_token-hint" className="min-w-0 text-[10px] leading-[13px] text-neutral-400">
+            <button className="link" onClick={() => openUrl(tokenUrl)}>
+              {t.settings.tokenHint(new URL(tokenUrl).host)}
+            </button>
+          </p>
+        </div>
+        <span aria-live="polite" className="ml-auto shrink-0 text-[10px] leading-[13px] text-neutral-400">
+          {!failed && status === 'saving' && <span className="pl-2">{t.settings.saving}</span>}
+          {!failed && status === 'saved' && (
+            <span className="inline-flex items-center gap-0.5 pl-2">
+              <CheckIcon className="size-3" aria-hidden="true" />
+              {t.settings.saved}
+            </span>
+          )}
+        </span>
+      </div>
+    </div>
   );
 };
 
@@ -138,6 +228,8 @@ const SourcePanel = () => {
             </p>
           </div>
         </>
+      ) : service.kind === 'token' ? (
+        <TokenField tokenUrl={service.tokenUrl} />
       ) : (
         <ConfigField
           key="stromno_widget_id"

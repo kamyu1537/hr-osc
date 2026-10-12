@@ -1,5 +1,6 @@
 import { fetch } from '@tauri-apps/plugin-http';
 import { v4 as uuidv4 } from 'uuid';
+import { Endpoint } from './service';
 
 type GetWidgetResponse = {
   id: string;
@@ -11,7 +12,13 @@ type GetWidgetResponse = {
   error?: {};
 };
 
-export const getWebSocketUrl = async (widgetId: string) => {
+export const widgetHeartRate = (message: string) => (JSON.parse(message) as { data: { heartRate: number } }).data.heartRate;
+
+export const getWidgetEndpoint = async (widgetId: string | undefined): Promise<Endpoint> => {
+  if (!widgetId) {
+    return { failure: 'noWidgetId', retry: false };
+  }
+
   const requestId = uuidv4();
 
   const response = await fetch('https://api.stromno.com/v1/api/public/rpc', {
@@ -31,12 +38,12 @@ export const getWebSocketUrl = async (widgetId: string) => {
 
   if (response.status !== 200) {
     await response.body?.cancel();
-    return '';
+    return { failure: 'noWebSocketUrl', retry: true };
   }
 
   const data = (await response.json()) as GetWidgetResponse;
   if (data.error) {
-    return '';
+    return { failure: 'noWebSocketUrl', retry: true };
   }
-  return data.result.ramielUrl;
+  return { url: data.result.ramielUrl };
 };

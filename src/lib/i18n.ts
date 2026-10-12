@@ -23,6 +23,8 @@ const en = {
   failures: {
     noWidgetId: 'No widget ID set',
     noWebSocketUrl: 'Failed to get WebSocket URL',
+    noPulsoidToken: 'No Pulsoid token set',
+    pulsoidToken: 'Pulsoid token rejected. Issue a new one',
     httpPort: (port: number) => `Can't open HTTP port ${port}`,
   },
   settings: {
@@ -35,6 +37,8 @@ const en = {
     httpLanHint: 'Turn on for senders on the same network',
     widgetId: 'Widget ID',
     widgetHint: (host: string) => `Find your widget ID at ${host}`,
+    token: 'Access token',
+    tokenHint: (host: string) => `Issue a token at ${host}`,
     timeout: 'Connected timeout (seconds)',
     timeoutHint: 'Disconnected after this long without data',
     host: 'Host',
@@ -81,6 +85,8 @@ const ko: Strings = {
   failures: {
     noWidgetId: '위젯 ID가 설정되지 않음',
     noWebSocketUrl: 'WebSocket URL을 가져오지 못함',
+    noPulsoidToken: 'Pulsoid 토큰이 설정되지 않음',
+    pulsoidToken: 'Pulsoid 토큰이 거부됨. 새 토큰을 발급하세요',
     httpPort: (port: number) => `HTTP ${port} 포트를 열 수 없음`,
   },
   settings: {
@@ -93,6 +99,8 @@ const ko: Strings = {
     httpLanHint: '같은 네트워크의 다른 기기에서 보낼 때 켭니다',
     widgetId: '위젯 ID',
     widgetHint: (host: string) => `${host}에서 위젯 ID 확인`,
+    token: '액세스 토큰',
+    tokenHint: (host: string) => `${host}에서 토큰 발급`,
     timeout: '연결 제한 시간(초)',
     timeoutHint: '이 시간 동안 데이터가 없으면 연결 끊김',
     host: '호스트',
@@ -137,6 +145,8 @@ const ja: Strings = {
   failures: {
     noWidgetId: 'ウィジェットIDが未設定です',
     noWebSocketUrl: 'WebSocket URLを取得できません',
+    noPulsoidToken: 'Pulsoidトークンが未設定です',
+    pulsoidToken: 'Pulsoidトークンが拒否されました。新しく発行してください',
     httpPort: (port: number) => `HTTPポート${port}を開けません`,
   },
   settings: {
@@ -149,6 +159,8 @@ const ja: Strings = {
     httpLanHint: '同じネットワークの他の機器から送るときにオン',
     widgetId: 'ウィジェットID',
     widgetHint: (host: string) => `${host} でウィジェットIDを確認`,
+    token: 'アクセストークン',
+    tokenHint: (host: string) => `${host} でトークンを発行`,
     timeout: '接続タイムアウト(秒)',
     timeoutHint: 'この時間データがなければ未接続',
     host: 'ホスト',

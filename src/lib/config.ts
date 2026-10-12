@@ -21,9 +21,19 @@ export const defaultConfig: IConfig = {
   language: 'auto',
 };
 
-type Service = { label: string; chip: string } & ({ kind: 'http' } | { kind: 'widget'; widgetIdUrl: string });
+type Service = { label: string; chip: string } & (
+  | { kind: 'http' }
+  | { kind: 'widget'; widgetIdUrl: string }
+  | { kind: 'token'; tokenUrl: string }
+);
 
 export const services: Record<IConfig['service_type'], Service> = {
+  pulsoid: {
+    label: 'Pulsoid',
+    chip: 'border-[#2fb6c4]/30 text-[#2fb6c4]',
+    kind: 'token',
+    tokenUrl: 'https://pulsoid.net/ui/keys',
+  },
   pulsoid_legacy: {
     label: 'Pulsoid (Legacy)',
     chip: 'border-[#2fb6c4]/30 text-[#2fb6c4]',
@@ -100,7 +110,7 @@ export async function saveConfig(config: IConfig) {
 }
 
 export interface IConfig {
-  service_type: 'pulsoid_legacy' | 'stromno' | 'http';
+  service_type: 'pulsoid' | 'pulsoid_legacy' | 'stromno' | 'http';
   http_server_port: number;
   http_server_lan: boolean;
   stromno_widget_id: string;

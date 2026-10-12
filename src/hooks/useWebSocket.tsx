@@ -1,13 +1,8 @@
 import { useEffect } from 'react';
-import { connected, disconnected, Failure, getTimeoutSeconds, sendOscHeartRate } from '../lib/service';
+import { getPulsoidEndpoint, pulsoidHeartRate } from '../lib/pulsoid';
+import { connected, disconnected, Endpoint, Failure, getTimeoutSeconds, sendOscHeartRate } from '../lib/service';
 import { useConfig } from '../lib/states';
-import { getWebSocketUrl } from '../lib/stromno';
-
-type HeartRateData = {
-  data: {
-    heartRate: number;
-  };
-};
+import { getWidgetEndpoint, widgetHeartRate } from '../lib/stromno';
 
 const RETRY_BASE_MS = 1000;
 const RETRY_MAX_MS = 30000;
@@ -18,11 +13,10 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
   const reconnectRequest = useConfig((state) => state.reconnectRequest);
 
   useEffect(() => {
-    if (!widgetId) {
-      onDisconnect?.();
-      onFailure?.('noWidgetId');
-      return () => onFailure?.('');
-    }
+    const source =
+      serviceType === 'pulsoid'
+        ? { getEndpoint: getPulsoidEndpoint, heartRate: pulsoidHeartRate }
+        : { getEndpoint: () => getWidgetEndpoint(widgetId), heartRate: widgetHeartRate };
 
     let cancelled = false;
     let socket: WebSocket | null = null;
@@ -41,10 +35,10 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       attempt++;
     };
 
-    const failConnect = () => {
+    const fail = (failure: Exclude<Failure, ''>, retry: boolean) => {
       markDisconnected();
-      onFailure?.('noWebSocketUrl');
-      scheduleRetry();
+      onFailure?.(failure);
+      if (retry) scheduleRetry();
     };
 
     const dropSocket = () => {
@@ -70,9 +64,9 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
 
       connected(onConnected);
       try {
-        const json = JSON.parse(event.data) as HeartRateData;
-        onReceiveHeartrate?.(json.data.heartRate);
-        sendOscHeartRate(json.data.heartRate);
+        const heartRate = source.heartRate(event.data);
+        onReceiveHeartrate?.(heartRate);
+        sendOscHeartRate(heartRate);
       } catch (err) {
         console.error(err);
       }
@@ -84,8 +78,8 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       console.info('WS: open');
     };
 
-    const onError = (error: Event) => {
-      console.error('WS: error', error);
+    const onError = () => {
+      console.error('WS: error');
     };
 
     const onClose = () => {
@@ -99,23 +93,23 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
     const connect = async () => {
       console.info('connecting to websocket');
 
-      const wsUrl = await getWebSocketUrl(widgetId).catch((err) => {
+      const endpoint = await source.getEndpoint().catch((err): Endpoint => {
         console.error(err);
-        return '';
+        return { failure: 'noWebSocketUrl', retry: true };
       });
       if (cancelled) return;
 
-      if (!wsUrl) {
+      if ('failure' in endpoint) {
         console.info('failed to get websocket url');
-        failConnect();
+        fail(endpoint.failure, endpoint.retry);
         return;
       }
 
       try {
-        socket = new WebSocket(wsUrl);
+        socket = new WebSocket(endpoint.url);
       } catch (err) {
         console.error(err);
-        failConnect();
+        fail('noWebSocketUrl', true);
         return;
       }
       onFailure?.('');

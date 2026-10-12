@@ -17,7 +17,10 @@
     },
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://api.stromno.com/v1/api/public/rpc" }]
+      "allow": [
+        { "url": "https://api.stromno.com/v1/api/public/rpc" },
+        { "url": "https://dev.pulsoid.net/api/v1/token/validate" }
+      ]
     },
     {
       "identifier": "opener:allow-open-url",
@@ -28,6 +31,7 @@
         { "url": "https://twitter.com/kamyu1537" },
         { "url": "https://twitter.com/selees824" },
         { "url": "https://pulsoid.net/ui/configuration" },
+        { "url": "https://pulsoid.net/ui/keys" },
         { "url": "https://app.stromno.com/dashboard" }
       ]
     }

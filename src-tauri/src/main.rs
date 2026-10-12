@@ -58,6 +58,33 @@ async fn get_http_update_time() -> i64 {
     HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await
 }
 
+fn pulsoid_token_entry() -> keyring::Result<keyring::Entry> {
+    keyring::Entry::new("me.kamyu.hr-osc", "pulsoid_token")
+}
+
+#[tauri::command]
+async fn get_pulsoid_token() -> Result<String, String> {
+    match pulsoid_token_entry().and_then(|entry| entry.get_password()) {
+        Err(keyring::Error::NoEntry) => Ok(String::new()),
+        result => result.map_err(|err| err.to_string()),
+    }
+    .inspect_err(|err| log::error!("Error reading Pulsoid token: {err}"))
+}
+
+#[tauri::command]
+async fn set_pulsoid_token(token: String) -> Result<(), String> {
+    pulsoid_token_entry()
+        .and_then(|entry| match token.as_str() {
+            "" => match entry.delete_credential() {
+                Err(keyring::Error::NoEntry) => Ok(()),
+                result => result,
+            },
+            token => entry.set_password(token),
+        })
+        .map_err(|err| err.to_string())
+        .inspect_err(|err| log::error!("Error saving Pulsoid token: {err}"))
+}
+
 #[tokio::main]
 async fn main() {
     tauri::Builder::default()
@@ -80,6 +107,8 @@ async fn main() {
             stop_http_server,
             get_http_heartrate,
             get_http_update_time,
+            get_pulsoid_token,
+            set_pulsoid_token,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
