@@ -11,9 +11,10 @@ type ConfigFieldProps<K extends FieldKey> = {
   label: string;
   parse: Parse<IConfig[K]>;
   type?: 'text' | 'number';
+  hint?: string;
 };
 
-const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text' }: ConfigFieldProps<K>) => {
+const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hint }: ConfigFieldProps<K>) => {
   const [raw, setRaw] = useState(() => String(useConfig.getState().config?.[name] ?? ''));
   const [error, setError] = useState('');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -45,6 +46,7 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text' }: 
   };
 
   const errorId = `${name}-error`;
+  const hintId = `${name}-hint`;
 
   return (
     <div>
@@ -62,13 +64,19 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text' }: 
         className="input"
         value={raw}
         aria-invalid={error !== ''}
-        aria-describedby={error ? errorId : undefined}
+        aria-describedby={error ? errorId : hint ? hintId : undefined}
         onChange={(e) => handleChange(e.target.value)}
       />
-      {error && (
+      {error ? (
         <p id={errorId} className="mt-0.5 text-xs text-rose-400">
           {error}
         </p>
+      ) : (
+        hint && (
+          <p id={hintId} className="mt-0.5 text-[11px] text-neutral-400">
+            {hint}
+          </p>
+        )
       )}
     </div>
   );
