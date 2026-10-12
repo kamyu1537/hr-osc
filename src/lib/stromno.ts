@@ -30,6 +30,7 @@ export const getWebSocketUrl = async (widgetId: string) => {
   });
 
   if (response.status !== 200) {
+    await response.body?.cancel();
     return '';
   }
 
