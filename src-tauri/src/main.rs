@@ -13,23 +13,23 @@ mod http_server;
 mod osc;
 
 #[tauri::command]
-fn send_float(addr: &str, path: &str, value: f32) {
+async fn send_float(host: String, port: u16, path: String, value: f32) -> Result<(), String> {
     let osc_message = OscMessage {
-        addr: path.to_owned(),
+        addr: path,
         args: vec![OscType::Float(value)],
     };
 
-    send_osc_message(addr, osc_message)
+    send_osc_message(&host, port, osc_message).await
 }
 
 #[tauri::command]
-fn send_bool(addr: &str, path: &str, value: bool) {
+async fn send_bool(host: String, port: u16, path: String, value: bool) -> Result<(), String> {
     let osc_message = OscMessage {
-        addr: path.to_owned(),
+        addr: path,
         args: vec![OscType::Bool(value)],
     };
 
-    send_osc_message(addr, osc_message)
+    send_osc_message(&host, port, osc_message).await
 }
 
 #[tauri::command]
