@@ -15,7 +15,7 @@ A verification instance never shares state with the owner's own hr-osc or anothe
 | --- | --- | --- |
 | App identifier and config dir | `me.kamyu.hr-osc` (`%APPDATA%\me.kamyu.hr-osc\data`) | `me.kamyu.hr-osc.verify` |
 | Vite dev server | 1420 | 1421 |
-| HTTP receiver (`http_server_port`) | 8080 | 18080 |
+| HTTP receiver (`http_server_port`, `http_server_lan`) | 8080, LAN off | 18080 on `127.0.0.1` |
 | OSC target (`osc_client_port`) | 9000 | 19000 |
 | WebView2 CDP port | none | 9334 |
 
@@ -27,7 +27,7 @@ netstat -ano | grep -E ':(1421|18080|19000|9334) ' | grep -E 'LISTENING|^ *UDP'
 
 ## Launch
 
-1. Seed the verification config. English UI keeps the `click` labels below valid.
+1. Seed the verification config. English UI keeps the `click` labels below valid. Keep `http_server_lan` in the file: a config without it migrates to `true` and binds the receiver to `0.0.0.0`.
 
    ```bash
    mkdir -p "$APPDATA/me.kamyu.hr-osc.verify/data"
@@ -35,6 +35,7 @@ netstat -ano | grep -E ':(1421|18080|19000|9334) ' | grep -E 'LISTENING|^ *UDP'
    {
      "service_type": "http",
      "http_server_port": 18080,
+     "http_server_lan": false,
      "osc_client_host": "127.0.0.1",
      "osc_client_port": 19000,
      "max_heart_rate": 200,
@@ -74,7 +75,7 @@ Run this first, and again whenever something looks off. All three must hold.
 ```bash
 curl -s http://127.0.0.1:9334/json | grep -E '"(title|url)"'   # title "hr-osc", url http://localhost:1421/
 curl -s http://127.0.0.1:18080/                               # hr-osc http server
-grep -E 'http_server_port|osc_client_port' "$APPDATA/me.kamyu.hr-osc.verify/data/config.json"
+grep -E 'http_server_port|http_server_lan|osc_client_port' "$APPDATA/me.kamyu.hr-osc.verify/data/config.json"
 ```
 
 An instance whose page URL is `localhost:1420`, or whose receiver is on 8080, is not yours; do not drive it.
@@ -90,7 +91,7 @@ node $S/cdp.mjs fill max_heart_rate 100                            # input or se
 node $S/cdp.mjs screenshot "$OUT/home.png"
 ```
 
-Settings inputs use the config key as their `id` (`http_server_port`, `connected_timeout`, `osc_client_host`, `osc_client_port`, `osc_path_connected`, `osc_path_percent`, `max_heart_rate`); the selects are `service_type` and `language`. Text fields save 500 ms after the last change.
+Settings inputs use the config key as their `id` (`http_server_port`, `stromno_widget_id` for a widget source, `connected_timeout`, `osc_client_host`, `osc_client_port`, `osc_path_connected`, `osc_path_percent`, `max_heart_rate`); the selects are `service_type` and `language`. Text fields save 500 ms after the last change. `http_server_lan` is a checkbox that `fill` cannot set; toggle it with `node $S/cdp.mjs eval "document.getElementById('http_server_lan').click()"`, which saves at once.
 
 Feed heart rate to the HTTP source the way a user's sender does:
 
