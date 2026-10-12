@@ -42,11 +42,12 @@ export const configFilePath = async () => `${await appConfigDir()}\\data\\config
 
 let writing = Promise.resolve();
 let persisted: IConfig | null = null;
+const tempPath = `data/config.json.${crypto.randomUUID()}.tmp`;
 
 function writeConfig(config: IConfig) {
   const write = writing.then(async () => {
-    await writeTextFile('data/config.json.tmp', JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
-    await rename('data/config.json.tmp', 'data/config.json', {
+    await writeTextFile(tempPath, JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
+    await rename(tempPath, 'data/config.json', {
       oldPathBaseDir: BaseDirectory.AppConfig,
       newPathBaseDir: BaseDirectory.AppConfig,
     });
