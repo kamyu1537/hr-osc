@@ -35,7 +35,7 @@ const About = () => {
         </div>
       </div>
 
-      <p className="mt-3 text-xs text-neutral-200">
+      <p className="mt-6 text-xs text-neutral-200">
         <button className="link" onClick={handleOpenGithub}>
           GitHub
         </button>
@@ -49,7 +49,7 @@ const About = () => {
         </button>
       </p>
 
-      <button className="btn mt-2.5 py-px text-[11px] leading-[normal]" onClick={handleOpenSponsor}>
+      <button className="btn mt-3 py-px text-[11px] leading-[normal]" onClick={handleOpenSponsor}>
         <HeartIcon className="size-2.5 text-red-400" />
         Support the developer
       </button>
