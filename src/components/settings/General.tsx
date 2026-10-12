@@ -8,7 +8,7 @@ const General = () => {
   const config = useConfig((state) => state.config);
 
   const serviceType = useSelect(
-    { placeholder: defaultConfig.service_type + '' },
+    {},
     [
       { value: 'stromno', label: 'Pulsoid / Stromno' },
       { value: 'http', label: 'HTTP' },

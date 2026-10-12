@@ -6,7 +6,7 @@ export type ServiceProps = {
   setHeartRate: (heartRate: number) => void;
 };
 
-let timeout: ReturnType<typeof setTimeout>;
+let timeout: ReturnType<typeof setTimeout> | undefined;
 
 export const connected = async (onConnected?: () => void) => {
   const config = await getConfig();

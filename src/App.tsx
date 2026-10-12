@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import HttpService from './components/HttpService';
 import Loading from './components/Loading';
 import NavBar from './components/NavBar';
