@@ -159,8 +159,8 @@ const ja: Strings = {
 const strings: Record<Language, Strings> = { en, ko, ja };
 
 const osLanguage = (): Language => {
-  const tag = navigator.language.toLowerCase();
-  return tag.startsWith('ko') ? 'ko' : tag.startsWith('ja') ? 'ja' : 'en';
+  const tag = navigator.language.toLowerCase().split('-')[0];
+  return tag === 'ko' ? 'ko' : tag === 'ja' ? 'ja' : 'en';
 };
 
 const resolveLanguage = (setting: LanguageSetting): Language => (setting === 'auto' ? osLanguage() : setting);
