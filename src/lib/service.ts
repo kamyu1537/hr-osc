@@ -4,6 +4,7 @@ import { sendOscBool, sendOscFloat } from './osc';
 export type ServiceProps = {
   setConnected: (connected: boolean) => void;
   setHeartRate: (heartRate: number) => void;
+  setFailure: (reason: string) => void;
 };
 
 let timeout: ReturnType<typeof setTimeout> | undefined;

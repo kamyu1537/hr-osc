@@ -12,23 +12,29 @@ type HeartRateData = {
 let timeout: ReturnType<typeof setTimeout>;
 let socket: WebSocket | null = null;
 
-const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void) => {
+const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void, onFailure?: (reason: string) => void) => {
   const config = useConfig((state) => state.config);
 
   useEffect(() => {
     if (!config?.stromno_widget_id) {
       if (socket) socket.close();
-      return;
+      onFailure?.('No widget ID set');
+      return () => onFailure?.('');
     }
 
+    let active = true;
     (async () => {
       console.info('connecting to websocket');
 
-      const wsUrl = await getWebSocketUrl(config.stromno_widget_id);
+      const wsUrl = await getWebSocketUrl(config.stromno_widget_id).catch((err) => {
+        console.error(err);
+        return '';
+      });
       if (!wsUrl) {
         if (socket) socket.close();
 
         console.info('failed to get websocket url');
+        if (active) onFailure?.('Failed to get WebSocket URL');
         return;
       }
 
@@ -83,6 +89,8 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
 
     return () => {
       console.info('unmount');
+      active = false;
+      onFailure?.('');
       if (socket) socket.close();
       socket = null;
     };

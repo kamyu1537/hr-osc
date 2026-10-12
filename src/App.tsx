@@ -16,6 +16,7 @@ const App = () => {
   const [update, checkUpdate, Update] = useUpdate();
   const [connected, setConnected] = useState(false);
   const [heartRate, setHeartRate] = useState(0);
+  const [failure, setFailure] = useState('');
   const { config, setConfig } = useConfig();
 
   useEffect(() => {
@@ -26,7 +27,7 @@ const App = () => {
     })();
   }, []);
 
-  if (!loaded) {
+  if (!loaded || config == null) {
     return <Loading />;
   }
 
@@ -37,14 +38,16 @@ const App = () => {
   return (
     <MemoryRouter>
       <NavBar />
-      {config?.service_type === 'http' && <HttpService setConnected={setConnected} setHeartRate={setHeartRate} />}
-      {config?.service_type === 'stromno' && (
-        <WebSocketService setConnected={setConnected} setHeartRate={setHeartRate} />
+      {config.service_type === 'http' && (
+        <HttpService setConnected={setConnected} setHeartRate={setHeartRate} setFailure={setFailure} />
+      )}
+      {config.service_type === 'stromno' && (
+        <WebSocketService setConnected={setConnected} setHeartRate={setHeartRate} setFailure={setFailure} />
       )}
 
-      <main className="h-[calc(100%-2em)]">
+      <main className="min-h-0 grow">
         <Routes>
-          <Route path="/" element={<Home connected={connected} heartRate={heartRate} />} />
+          <Route path="/" element={<Home config={config} connected={connected} heartRate={heartRate} failure={failure} />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/about" element={<About />} />
         </Routes>

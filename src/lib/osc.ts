@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { IConfig } from './config';
 
-const getAddr = (config: IConfig) => {
+export const getAddr = (config: IConfig) => {
   let host = config.osc_client_host;
   if (!new RegExp('(?:[0-9]{1,3}.){3}[0-9]{1,3}', 'g').test(host)) {
     host = '127.0.0.1';

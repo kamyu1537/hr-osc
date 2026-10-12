@@ -1,11 +1,12 @@
 import useWebSocket from '../hooks/useWebSocket';
 import { ServiceProps } from '../lib/service';
 
-const WebSocketService = ({ setConnected, setHeartRate }: ServiceProps) => {
+const WebSocketService = ({ setConnected, setHeartRate, setFailure }: ServiceProps) => {
   useWebSocket(
     (heartRate) => setHeartRate(heartRate),
     () => setConnected(true),
-    () => setConnected(false)
+    () => setConnected(false),
+    setFailure
   );
   return <></>;
 };

@@ -16,6 +16,11 @@ export const defaultConfig: IConfig = {
   osc_client_port: 9000,
 };
 
+export const serviceLabels: Record<IConfig['service_type'], string> = {
+  stromno: 'Pulsoid (Legacy) / Stromno',
+  http: 'HTTP',
+};
+
 async function writeDefaultConfig() {
   await writeTextFile('data/config.json', JSON.stringify(defaultConfig, null, 2), { baseDir: BaseDirectory.AppConfig });
 }

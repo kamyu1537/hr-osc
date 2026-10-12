@@ -1,30 +1,42 @@
 import { HeartIcon } from '@heroicons/react/24/solid';
+import { IConfig, serviceLabels } from '../lib/config';
+import { getAddr } from '../lib/osc';
 import { cn } from '../lib/utils';
 
-const Home = ({ connected, heartRate }: { connected: boolean; heartRate: number }) => {
+type HomeProps = {
+  config: IConfig;
+  connected: boolean;
+  heartRate: number;
+  failure: string;
+};
+
+const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
+  const percent = config.max_heart_rate > 0 ? Math.min(1, Math.max(0, heartRate / config.max_heart_rate)) : 0;
+
   return (
-    <div className="h-full flex flex-col items-center justify-center">
-      <div className="grow"></div>
-
-      {connected && (
-        <div className="absolute animate-ping mb-[105px]">
-          <HeartIcon className="w-14 text-red-400 opacity-70" />
-        </div>
-      )}
-      <HeartIcon className={cn('w-14', connected ? 'text-red-400' : 'text-gray-500')} />
-
-      <div className="mt-3 text-center">
-        <h1 className={cn('text-xl', connected ? 'text-red-400' : 'text-gray-500')}>{heartRate} bpm</h1>
-        <div className="text-sm text-gray-600">({(heartRate / 200).toFixed(2)})</div>
-      </div>
-
-      <div className="grow"></div>
-      <div className="text-center text-sm mb-2">
-        Connection Status
-        <div className={`text-xs ${connected ? 'text-lime-500' : 'text-gray-600'}`}>
+    <div className="h-full flex flex-col items-center">
+      <div className="w-full flex justify-between gap-2 text-xs">
+        <span className="text-neutral-400 truncate">{serviceLabels[config.service_type]}</span>
+        <span aria-live="polite" className={cn('flex items-center gap-1 shrink-0', connected ? 'text-lime-500' : 'text-neutral-400')}>
+          <span className={cn('size-1.5 rounded-full', connected ? 'bg-lime-500' : 'bg-neutral-500')} />
           {connected ? 'Connected' : 'Disconnected'}
-        </div>
+        </span>
       </div>
+
+      <div className="grow flex flex-col items-center justify-center">
+        <div className="relative">
+          {connected && <HeartIcon className="absolute inset-0 w-14 text-red-400 opacity-70 animate-ping" />}
+          <HeartIcon className={cn('relative w-14', connected ? 'text-red-400' : 'text-neutral-500')} />
+        </div>
+
+        <div className={cn('mt-1 text-2xl', connected ? 'text-red-400' : 'text-neutral-400')}>{heartRate} bpm</div>
+        <div className="text-xs text-neutral-400">
+          {Math.round(percent * 100)}% of max {config.max_heart_rate}
+        </div>
+        {failure && <div className="mt-1 text-xs text-rose-400">{failure}</div>}
+      </div>
+
+      <div className="text-xs text-neutral-400">OSC → {getAddr(config)}</div>
     </div>
   );
 };
