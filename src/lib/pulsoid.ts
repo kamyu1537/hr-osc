@@ -36,7 +36,6 @@ export const getPulsoidEndpoint = async (): Promise<Endpoint> => {
 
 export type PulsoidDeviceCode = {
   deviceCode: string;
-  userCode: string;
   verificationUriComplete: string;
   expiresIn: number;
   interval: number;
@@ -55,14 +54,12 @@ export const requestPulsoidDeviceCode = async (): Promise<PulsoidDeviceCode> => 
   }
   const body = (await response.json()) as {
     device_code: string;
-    user_code: string;
     verification_uri_complete: string;
     expires_in: number;
     interval: number;
   };
   return {
     deviceCode: body.device_code,
-    userCode: body.user_code,
     verificationUriComplete: body.verification_uri_complete,
     expiresIn: body.expires_in,
     interval: body.interval,

@@ -58,7 +58,6 @@ const json = (status: number, body: unknown) => new Response(JSON.stringify(body
 
 const device = {
   deviceCode: 'dev-1',
-  userCode: '73af568f-313c-49c2-8a45-b1c4aa554d10',
   verificationUriComplete: 'https://pulsoid.net/oauth2/device_authorization_consent?user_code=73af568f-313c-49c2-8a45-b1c4aa554d10',
   expiresIn: 900,
   interval: 3,
