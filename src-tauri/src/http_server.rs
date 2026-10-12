@@ -32,9 +32,14 @@ impl HttpHeartRateReceiver {
         }
     }
 
-    async fn set_heartrate(&self, heartrate: i32) {
+    async fn set_heartrate(&self, generation: u64, heartrate: i32) -> bool {
         let mut lock = self.heartrate.lock().await;
+        if self.generation.load(Ordering::SeqCst) != generation {
+            return false;
+        }
         *lock = heartrate;
+        self.set_heartrate_update().await;
+        true
     }
 
     pub async fn get_heartrate(&self) -> i32 {
@@ -60,7 +65,9 @@ pub static HTTP_HEARTRATE_RECEIVER: Lazy<HttpHeartRateReceiver> =
     Lazy::new(HttpHeartRateReceiver::new);
 
 async fn stop(server: &mut Option<JoinHandle<std::io::Result<()>>>) {
-    HTTP_HEARTRATE_RECEIVER.generation.fetch_add(1, Ordering::SeqCst);
+    HTTP_HEARTRATE_RECEIVER
+        .generation
+        .fetch_add(1, Ordering::SeqCst);
     if let Some(server) = server.take() {
         server.abort();
         server.await.ok();
@@ -82,7 +89,10 @@ pub async fn start_server(port: u16) -> Result<(), String> {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let app = Router::new()
         .route("/", get(root))
-        .route("/", post(move |payload| post_heartrate(generation, payload)))
+        .route(
+            "/",
+            post(move |payload| post_heartrate(generation, payload)),
+        )
         .layer(middleware::from_fn(change_connection_header));
 
     let listener = tokio::net::TcpListener::bind(addr)
@@ -90,7 +100,9 @@ pub async fn start_server(port: u16) -> Result<(), String> {
         .map_err(|err| format!("{addr}: {err}"))?;
 
     log::debug!("server binding: {}", addr);
-    *server = Some(tokio::spawn(async move { axum::serve(listener, app).await }));
+    *server = Some(tokio::spawn(
+        async move { axum::serve(listener, app).await },
+    ));
     Ok(())
 }
 
@@ -112,12 +124,14 @@ async fn post_heartrate(generation: u64, payload: String) -> &'static str {
     match i32::from_str(&payload) {
         Ok(heartrate) => {
             log::debug!("heartrate {}", heartrate);
-            if HTTP_HEARTRATE_RECEIVER.generation.load(Ordering::SeqCst) != generation {
-                return "server stopped";
+            if HTTP_HEARTRATE_RECEIVER
+                .set_heartrate(generation, heartrate)
+                .await
+            {
+                "ok"
+            } else {
+                "server stopped"
             }
-            HTTP_HEARTRATE_RECEIVER.set_heartrate(heartrate).await;
-            HTTP_HEARTRATE_RECEIVER.set_heartrate_update().await;
-            "ok"
         }
         Err(err) => {
             log::error!("error parsing heartrate: {}", err);
