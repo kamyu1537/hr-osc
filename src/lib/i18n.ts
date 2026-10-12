@@ -7,6 +7,7 @@ export type Language = Exclude<LanguageSetting, 'auto'>;
 const en = {
   nav: { home: 'Home', settings: 'Settings', about: 'About' },
   loading: 'Loading...',
+  configError: { title: "Couldn't read settings", file: 'Settings file', retry: 'Retry' },
   update: {
     available: (version: string) => `Version ${version} is available`,
     download: 'Download',
@@ -59,6 +60,7 @@ export type Strings = typeof en;
 const ko: Strings = {
   nav: { home: '홈', settings: '설정', about: '정보' },
   loading: '불러오는 중...',
+  configError: { title: '설정을 읽지 못했습니다', file: '설정 파일', retry: '다시 시도' },
   update: {
     available: (version: string) => `새 버전 ${version} 출시`,
     download: '다운로드',
@@ -109,6 +111,7 @@ const ko: Strings = {
 const ja: Strings = {
   nav: { home: 'ホーム', settings: '設定', about: '情報' },
   loading: '読み込み中...',
+  configError: { title: '設定を読み込めませんでした', file: '設定ファイル', retry: '再試行' },
   update: {
     available: (version: string) => `新しいバージョン ${version} があります`,
     download: 'ダウンロード',

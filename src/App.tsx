@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
+import ConfigError from './components/ConfigError';
 import HttpService from './components/HttpService';
 import Loading from './components/Loading';
 import NavBar from './components/NavBar';
 import WebSocketService from './components/WebSocketService';
 import useUpdate from './hooks/useUpdate';
-import { getConfig, services } from './lib/config';
+import { configFilePath, getConfig, services } from './lib/config';
 import { useLanguage } from './lib/i18n';
 import { Failure } from './lib/service';
 import { useConfig } from './lib/states';
@@ -15,6 +16,7 @@ import Settings from './routes/Settings';
 
 const App = () => {
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<{ message: string; path: string } | null>(null);
   const [update, checkUpdate, Update] = useUpdate();
   const [connected, setConnected] = useState(false);
   const [heartRate, setHeartRate] = useState(0);
@@ -22,17 +24,30 @@ const App = () => {
   const { config, setConfig } = useConfig();
   const language = useLanguage();
 
-  useEffect(() => {
-    (async () => {
+  const load = async () => {
+    setLoadError(null);
+    try {
       setConfig(await getConfig());
-      await checkUpdate();
-      setLoaded(true);
-    })();
+    } catch (err) {
+      console.error(err);
+      setLoadError({ message: String(err), path: await configFilePath().catch(() => '') });
+      return;
+    }
+    await checkUpdate();
+    setLoaded(true);
+  };
+
+  useEffect(() => {
+    load();
   }, []);
 
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
+
+  if (loadError) {
+    return <ConfigError {...loadError} onRetry={load} />;
+  }
 
   if (!loaded || config == null) {
     return <Loading />;

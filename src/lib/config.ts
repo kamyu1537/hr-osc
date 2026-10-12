@@ -1,3 +1,4 @@
+import { appConfigDir } from '@tauri-apps/api/path';
 import { BaseDirectory, exists, mkdir, readTextFile, rename, writeTextFile } from '@tauri-apps/plugin-fs';
 import { LanguageSetting, languageSettings } from './i18n';
 import { useConfig } from './states';
@@ -36,6 +37,8 @@ export const services: Record<IConfig['service_type'], Service> = {
   },
   http: { label: 'HTTP', chip: 'border-[#34d399]/30 text-[#34d399]', kind: 'http' },
 };
+
+export const configFilePath = async () => `${await appConfigDir()}\\data\\config.json`;
 
 let writing = Promise.resolve();
 
