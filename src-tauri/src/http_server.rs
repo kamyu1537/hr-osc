@@ -155,3 +155,21 @@ async fn post_heartrate(payload: String) -> &'static str {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn busy_port_does_not_block_stop() {
+        let busy = std::net::TcpListener::bind(("0.0.0.0", 0)).unwrap();
+        let port = busy.local_addr().unwrap().port();
+
+        start_server(port);
+        tokio::time::sleep(Duration::from_millis(100)).await;
+
+        tokio::time::timeout(Duration::from_secs(1), stop_server())
+            .await
+            .expect("stop_server blocked");
+    }
+}
