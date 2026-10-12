@@ -18,8 +18,7 @@ type ConfigFieldProps<K extends FieldKey> = {
 const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hint, prefix }: ConfigFieldProps<K>) => {
   const [raw, setRaw] = useState(() => {
     const stored = String(useConfig.getState().config?.[name] ?? '');
-    if (!prefix) return stored;
-    return stored.startsWith(prefix) ? stored.slice(prefix.length) : stored.slice(stored.lastIndexOf('/') + 1);
+    return prefix && stored.startsWith(prefix) ? stored.slice(prefix.length) : stored;
   });
   const [error, setError] = useState('');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
