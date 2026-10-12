@@ -102,6 +102,7 @@ export const pollPulsoidToken = async (device: PulsoidDeviceCode, signal: AbortS
       if (response.status === 200) {
         const { access_token } = (await response.json()) as { access_token: string };
         request.throwIfAborted();
+        if (Date.now() >= device.expiresAt) return { failure: 'expired' };
         return { token: access_token };
       }
 

@@ -234,6 +234,16 @@ describe('pollPulsoidToken', () => {
     expect(await result).toEqual({ failure: 'expired' });
   });
 
+  it('treats a token as expired when the clock passed the deadline before the expiry timer ran', async () => {
+    fetchMock.mockImplementation(async () => {
+      vi.setSystemTime(Date.now() + 10000);
+      return json(200, { access_token: 'late' });
+    });
+    const result = pollPulsoidToken(device(7), new AbortController().signal);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(await result).toEqual({ failure: 'expired' });
+  });
+
   it('stops polling when aborted', async () => {
     fetchMock.mockImplementation(async () => pending());
     const controller = new AbortController();
