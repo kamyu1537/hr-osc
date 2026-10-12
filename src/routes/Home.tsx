@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { IConfig, services } from '../lib/config';
 import { getAddr } from '../lib/osc';
 import { cn } from '../lib/utils';
+import { SourceAction } from './Settings';
 
 type HomeProps = {
   config: IConfig;
@@ -85,15 +86,16 @@ const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
         </div>
       </div>
 
-      <div className="mt-4 text-center text-[11px]">
+      <div className="mt-4 flex items-center justify-center gap-2 text-center text-[11px]">
         {failure ? (
           <span className="text-rose-400">{failure}</span>
         ) : (
-          <>
+          <span>
             <span className="text-neutral-500">OSC</span>{' '}
             <span className="tabular-nums text-neutral-300">{getAddr(config)}</span>
-          </>
+          </span>
         )}
+        {!connected && <SourceAction />}
       </div>
     </div>
   );

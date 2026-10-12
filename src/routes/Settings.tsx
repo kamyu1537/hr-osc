@@ -94,7 +94,7 @@ const SourcePanel = () => {
   );
 };
 
-const SourceAction = () => {
+export const SourceAction = () => {
   const serviceType = useConfig((state) => state.config?.service_type ?? defaultConfig.service_type);
 
   return services[serviceType].kind === 'http' ? (
