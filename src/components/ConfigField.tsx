@@ -50,11 +50,11 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
 
   return (
     <div>
-      <div className="mb-0.5 flex justify-between text-xs">
-        <label htmlFor={name} className="text-neutral-300">
+      <div className="flex justify-between text-[11px] leading-[14px]">
+        <label htmlFor={name} className="text-neutral-400">
           {label}
         </label>
-        <span aria-live="polite" className="text-neutral-400">
+        <span aria-live="polite" className="text-[10px] text-neutral-400">
           {status === 'saving' ? 'Saving...' : status === 'saved' ? 'Saved' : ''}
         </span>
       </div>
@@ -68,12 +68,12 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
         onChange={(e) => handleChange(e.target.value)}
       />
       {error ? (
-        <p id={errorId} className="mt-0.5 text-xs text-rose-400">
+        <p id={errorId} className="text-[11px] leading-[13px] text-rose-400">
           {error}
         </p>
       ) : (
         hint && (
-          <p id={hintId} className="mt-0.5 text-[11px] text-neutral-400">
+          <p id={hintId} className="truncate text-[10px] leading-[13px] text-neutral-400">
             {hint}
           </p>
         )

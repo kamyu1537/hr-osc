@@ -39,7 +39,7 @@ const SourcePanel = () => {
   return (
     <>
       <div>
-        <label htmlFor="service_type" className="mb-0.5 block text-xs text-neutral-300">
+        <label htmlFor="service_type" className="block text-[11px] leading-[14px] text-neutral-400">
           Source
         </label>
         <select
@@ -57,26 +57,16 @@ const SourcePanel = () => {
       </div>
 
       {serviceType === 'http' ? (
-        <>
-          <ConfigField
-            key="http_server_port"
-            name="http_server_port"
-            label="HTTP server port"
-            type="number"
-            parse={port}
-            hint={`POST bpm as text to http://127.0.0.1:${httpPort}`}
-          />
-          <button className="btn self-start" onClick={() => startHttpServer(latestConfig())}>
-            Restart server
-          </button>
-        </>
+        <ConfigField
+          key="http_server_port"
+          name="http_server_port"
+          label="HTTP server port"
+          type="number"
+          parse={port}
+          hint={`POST bpm as text to http://127.0.0.1:${httpPort}`}
+        />
       ) : (
-        <>
-          <ConfigField key="stromno_widget_id" name="stromno_widget_id" label="Widget ID" parse={optional} />
-          <button className="btn self-start" onClick={() => saveConfig({ ...latestConfig() })}>
-            Reconnect
-          </button>
-        </>
+        <ConfigField key="stromno_widget_id" name="stromno_widget_id" label="Widget ID" parse={optional} />
       )}
 
       <ConfigField
@@ -87,6 +77,20 @@ const SourcePanel = () => {
         hint="Disconnected after this long without data"
       />
     </>
+  );
+};
+
+const SourceAction = () => {
+  const serviceType = useConfig((state) => state.config?.service_type ?? defaultConfig.service_type);
+
+  return serviceType === 'http' ? (
+    <button className="btn" onClick={() => startHttpServer(latestConfig())}>
+      Restart server
+    </button>
+  ) : (
+    <button className="btn" onClick={() => saveConfig({ ...latestConfig() })}>
+      Reconnect
+    </button>
   );
 };
 
@@ -128,26 +132,26 @@ const ParametersPanel = () => (
 );
 
 const panels = [
-  { id: 'source', tab: 'Source', title: 'Heart rate source', Panel: SourcePanel },
+  { id: 'source', tab: 'Source', title: 'Heart rate source', Panel: SourcePanel, Action: SourceAction },
   { id: 'osc', tab: 'OSC', title: 'OSC output', Panel: OscPanel },
   { id: 'parameters', tab: 'Params', title: 'Parameters', Panel: ParametersPanel },
 ];
 
 const Settings = () => {
   const [selected, setSelected] = useState(panels[0].id);
-  const { id, title, Panel } = panels.find((panel) => panel.id === selected) ?? panels[0];
+  const { id, title, Panel, Action } = panels.find((panel) => panel.id === selected) ?? panels[0];
 
   return (
-    <div className="h-full flex gap-2 pt-1">
-      <ul className="w-16 shrink-0 border-r border-neutral-800 pr-2 flex flex-col gap-0.5 text-sm">
+    <div className="h-full flex flex-col">
+      <ul className="mb-0.5 flex gap-3 text-xs">
         {panels.map((panel) => (
           <li key={panel.id}>
             <button
               aria-current={panel.id === selected ? 'true' : undefined}
               onClick={() => setSelected(panel.id)}
               className={cn(
-                'w-full rounded-sm px-1.5 py-0.5 text-left transition-colors',
-                panel.id === selected ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-white'
+                'underline-offset-4 transition-colors',
+                panel.id === selected ? 'text-white underline decoration-1' : 'text-neutral-400 hover:text-white'
               )}
             >
               {panel.tab}
@@ -156,13 +160,13 @@ const Settings = () => {
         ))}
       </ul>
 
-      <section aria-labelledby={`${id}-heading`} className="min-w-0 grow overflow-y-auto pr-1 pb-1 flex flex-col gap-2">
-        <h2
-          id={`${id}-heading`}
-          className="border-b border-neutral-800 pb-1 text-[11px] uppercase tracking-wider text-neutral-400"
-        >
-          {title}
-        </h2>
+      <section aria-labelledby={`${id}-heading`} className="min-h-0 grow overflow-y-auto flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <h2 id={`${id}-heading`} className="text-[13px]">
+            {title}
+          </h2>
+          {Action && <Action />}
+        </div>
         <Panel />
       </section>
     </div>

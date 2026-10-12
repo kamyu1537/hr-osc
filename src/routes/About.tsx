@@ -26,25 +26,27 @@ const About = () => {
   };
 
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center">
-      <img src={appIcon} alt="" className="w-12" draggable={false} />
-      <h1 className="mt-1 text-xl leading-tight">hr-osc</h1>
-      <p className="text-xs text-neutral-400">version {version}</p>
+    <div className="h-full text-center">
+      <img src={appIcon} alt="" className="inline-block size-10" draggable={false} />
+      <h1 className="text-[22px]">hr-osc</h1>
+      <p className="text-xs text-neutral-400">{version}</p>
 
-      <div className="mt-3 flex gap-3">
+      <p className="mt-2.5 text-xs text-neutral-200">
         <button className="link" onClick={handleOpenGithub}>
           GitHub
         </button>
+        {' · '}
         <button className="link" onClick={() => handleOpenTwitter('kamyu1537')}>
           @kamyu1537
         </button>
+        {' · '}
         <button className="link" onClick={() => handleOpenTwitter('selees824')}>
           @selees824
         </button>
-      </div>
+      </p>
 
-      <button className="btn mt-3" onClick={handleOpenSponsor}>
-        <HeartIcon className="w-3.5 text-red-400" />
+      <button className="btn mt-2.5 py-px text-[11px] leading-[normal]" onClick={handleOpenSponsor}>
+        <HeartIcon className="size-2.5 text-red-400" />
         Support the developer
       </button>
     </div>

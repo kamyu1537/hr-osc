@@ -41,7 +41,7 @@ const App = () => {
         <WebSocketService setConnected={setConnected} setHeartRate={setHeartRate} setFailure={setFailure} />
       )}
 
-      <main className="min-h-0 grow">
+      <main className="min-h-0 grow p-2">
         <Routes>
           <Route path="/" element={<Home config={config} connected={connected} heartRate={heartRate} failure={failure} />} />
           <Route path="/settings" element={<Settings />} />

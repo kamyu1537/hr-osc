@@ -1,4 +1,3 @@
-import { XMarkIcon } from '@heroicons/react/24/solid';
 import { getVersion } from '@tauri-apps/api/app';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useState } from 'react';
@@ -42,13 +41,13 @@ const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
   return [
     update,
     checkUpdate,
-    <div role="status" className="-mx-2 -mt-2 mb-1.5 flex items-center gap-2 bg-neutral-800 px-2 py-1 text-xs">
+    <div role="status" className="flex shrink-0 items-center gap-2 bg-neutral-900 px-2 py-0.5 text-[11px] text-neutral-300">
       <span>Version {update} is available</span>
-      <button onClick={handleClickUpdate} className="link text-xs">
+      <button onClick={handleClickUpdate} className="link">
         Download
       </button>
-      <button onClick={handleClickLater} aria-label="Dismiss update notice" className="ml-auto rounded-sm text-neutral-300 hover:text-white">
-        <XMarkIcon className="w-4" />
+      <button onClick={handleClickLater} aria-label="Dismiss update notice" className="ml-auto px-1 text-[13px] leading-none text-neutral-400 hover:text-white">
+        ×
       </button>
     </div>,
   ];
