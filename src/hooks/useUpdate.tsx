@@ -1,18 +1,11 @@
+import { XMarkIcon } from '@heroicons/react/24/solid';
 import { getVersion } from '@tauri-apps/api/app';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import semver from 'semver';
 
 const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
   const [update, setUpdate] = useState<string>('');
-  const [version, setVersion] = useState<string>('');
-
-  useEffect(() => {
-    (async () => {
-      const version = await getVersion();
-      setVersion(version);
-    })();
-  }, []);
 
   const checkUpdate = async () => {
     try {
@@ -49,29 +42,14 @@ const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
   return [
     update,
     checkUpdate,
-    <div className="flex items-center justify-center h-screen">
-      <div>
-        <h2 className="font-bold text-2xl mb-3">Update available!</h2>
-        <p className="text-sm">
-          <span className="block text-rose-500">Current version: {version}</span>
-          <span className="block text-lime-500">New version: {update}</span>
-        </p>
-
-        <div className="mt-4 flex flex-row gap-1">
-          <button
-            onClick={handleClickUpdate}
-            className="hover:bg-lime-800/50 bg-lime-800/30 w-full p-1.5 transition-colors rounded-lg"
-          >
-            Download
-          </button>
-          <button
-            onClick={handleClickLater}
-            className="hover:bg-rose-800/50 bg-rose-800/30 py-1.5 px-4 transition-colors rounded-lg"
-          >
-            Later
-          </button>
-        </div>
-      </div>
+    <div role="status" className="-mx-2 -mt-2 mb-1.5 flex items-center gap-2 bg-neutral-800 px-2 py-1 text-xs">
+      <span>Version {update} is available</span>
+      <button onClick={handleClickUpdate} className="link text-xs">
+        Download
+      </button>
+      <button onClick={handleClickLater} aria-label="Dismiss update notice" className="ml-auto rounded-sm text-neutral-300 hover:text-white">
+        <XMarkIcon className="w-4" />
+      </button>
     </div>,
   ];
 };

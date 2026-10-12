@@ -31,12 +31,9 @@ const App = () => {
     return <Loading />;
   }
 
-  if (update) {
-    return <>{Update}</>;
-  }
-
   return (
     <MemoryRouter>
+      {update && Update}
       <NavBar />
       {config.service_type === 'http' && (
         <HttpService setConnected={setConnected} setHeartRate={setHeartRate} setFailure={setFailure} />
