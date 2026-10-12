@@ -1,24 +1,26 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
   --color-red-400: #f87171;
-  --color-rose-500: #f43f5e;
-  --color-rose-800: #9f1239;
+  --color-rose-400: #fb7185;
   --color-lime-500: #84cc16;
-  --color-lime-800: #3f6212;
-  --color-cyan-400: #22d3ee;
-  --color-sky-200: #bae6fd;
 }
 
 @layer base {
+  html {
+    color-scheme: dark;
+  }
+
   input::placeholder {
-    color: var(--color-gray-400);
+    color: var(--color-neutral-500);
   }
 
   option {
@@ -28,6 +30,29 @@
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-white);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-1.5 rounded-md border border-neutral-700 bg-neutral-900 px-2.5 py-0.5 text-sm text-white transition-colors hover:bg-neutral-800;
+  }
+
+  .input {
+    @apply block w-full rounded-sm border border-neutral-800 bg-neutral-900 px-1.5 py-0.5 text-sm text-neutral-200 select-text;
+  }
+
+  .input[aria-invalid='true'] {
+    @apply border-rose-400;
+  }
+
+  .link {
+    @apply text-left text-sm text-neutral-200 underline underline-offset-2 transition-colors hover:text-white;
   }
 }
 
@@ -40,13 +65,13 @@
 
 html,
 body {
-  @apply bg-gray-900 text-white w-screen h-screen overflow-hidden;
+  @apply bg-neutral-950 text-white w-screen h-screen overflow-hidden;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
     'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 #root {
-  @apply p-2 h-full w-full relative;
+  @apply p-2 h-full w-full relative flex flex-col;
 }
 
 * {

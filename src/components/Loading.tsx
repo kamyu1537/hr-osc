@@ -1,13 +1,10 @@
+import { HeartIcon } from '@heroicons/react/24/solid';
+
 const Loading = () => {
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="flex flex-col items-center">
-        <div className="animate-bounce">
-          <div className="bg-white w-5 h-5 animate-spin">&nbsp;</div>
-        </div>
-
-        <div className="mt-3">Loading...</div>
-      </div>
+    <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-neutral-400">
+      <HeartIcon className="w-8 text-neutral-500 animate-pulse" />
+      <div className="text-sm">Loading...</div>
     </div>
   );
 };

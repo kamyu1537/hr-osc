@@ -1,5 +1,4 @@
-import { Link, useLocation } from 'react-router';
-import { cn } from '../lib/utils';
+import { NavLink } from 'react-router';
 
 const items = [
   { to: '/', label: 'Home' },
@@ -8,18 +7,25 @@ const items = [
 ];
 
 const NavBar = () => {
-  const location = useLocation();
-
   return (
-    <header className="mb-1">
+    <nav className="mb-1">
       <ul className="flex gap-3">
-        {items.map((item, idx) => (
-          <li key={idx} className={cn(item.to === location.pathname && 'border-b-2 border-cyan-400')}>
-            <Link to={item.to}>{item.label}</Link>
+        {items.map((item) => (
+          <li key={item.to}>
+            <NavLink
+              to={item.to}
+              className={({ isActive }) =>
+                isActive
+                  ? 'border-b-2 border-white text-white'
+                  : 'border-b-2 border-transparent text-neutral-300 transition-colors hover:text-white'
+              }
+            >
+              {item.label}
+            </NavLink>
           </li>
         ))}
       </ul>
-    </header>
+    </nav>
   );
 };
 
