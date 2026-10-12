@@ -43,5 +43,5 @@ Current rules: `confirm-interpretation-before-dispatch`, `no-detection-heuristic
   - `pnpm run test`: `vitest run`; the tests are `src/lib/*.test.ts` (`heartRatePercent`, `getAddr`)
   - `pnpm run lint`
   - `cargo check`, `cargo clippy --all-targets -- -D warnings` and `cargo test` from the repository root; `cargo test` covers the HTTP receiver in `http_server.rs`
-- `.github/workflows/ci.yml` runs on every pull request and on pushes to `dev`, on Windows: `pnpm install --frozen-lockfile`, `pnpm exec tsc --noEmit`, `pnpm run test`, `pnpm run build`, then `cargo clippy --all-targets -- -D warnings` and `cargo test` in `src-tauri`.
+- `.github/workflows/ci.yml` runs on every pull request and on pushes to `dev`, on Windows: `pnpm install --frozen-lockfile`, `pnpm exec tsc --noEmit`, `pnpm run lint`, `pnpm run test`, `pnpm run build`, then `cargo clippy --all-targets -- -D warnings` and `cargo test` in `src-tauri`.
 - Prove a behaviour change in the running app with `.claude/skills/verify`: the screen state, the OSC packets a UDP listener receives, and `config.json` on disk.
