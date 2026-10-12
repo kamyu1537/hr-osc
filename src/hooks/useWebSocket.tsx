@@ -41,6 +41,12 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       attempt++;
     };
 
+    const failConnect = () => {
+      markDisconnected();
+      onFailure?.('noWebSocketUrl');
+      scheduleRetry();
+    };
+
     const onMessage = (event: MessageEvent<string>) => {
       console.info('WS: message', event.data);
       attempt = 0;
@@ -85,14 +91,18 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
 
       if (!wsUrl) {
         console.info('failed to get websocket url');
-        markDisconnected();
-        onFailure?.('noWebSocketUrl');
-        scheduleRetry();
+        failConnect();
         return;
       }
 
+      try {
+        socket = new WebSocket(wsUrl);
+      } catch (err) {
+        console.error(err);
+        failConnect();
+        return;
+      }
       onFailure?.('');
-      socket = new WebSocket(wsUrl);
       socket.addEventListener('open', onOpen);
       socket.addEventListener('error', onError);
       socket.addEventListener('message', onMessage);
