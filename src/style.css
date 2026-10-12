@@ -122,6 +122,10 @@
     border-color: var(--color-rose-400);
   }
 
+  .input[aria-invalid='true']:focus-visible {
+    box-shadow: 0 0 0 1px var(--color-rose-400);
+  }
+
   .link {
     @apply text-neutral-200 underline-offset-2 transition-colors hover:text-white hover:underline;
   }
