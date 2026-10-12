@@ -17,7 +17,7 @@ let lastConnected: boolean | undefined;
 const currentConfig = () => useConfig.getState().config as IConfig;
 
 const sendConnected = (value: boolean) => {
-  if (lastConnected === value) return;
+  if (!value && lastConnected === false) return;
 
   lastConnected = value;
   const config = currentConfig();
