@@ -19,6 +19,13 @@ const positive: Parse<number> = (raw) => {
     : { error: 'Enter a number greater than 0' };
 };
 
+const seconds: Parse<number> = (raw) => {
+  const value = Number(raw);
+  return raw.trim() !== '' && Number.isInteger(value) && value >= 1
+    ? { value }
+    : { error: 'Enter a whole number of seconds (1 or more)' };
+};
+
 const required: Parse<string> = (raw) => (raw.trim() ? { value: raw.trim() } : { error: 'Required' });
 
 const optional: Parse<string> = (raw) => ({ value: raw.trim() });
@@ -73,7 +80,7 @@ const SourcePanel = () => {
         name="connected_timeout"
         label="Connected timeout (seconds)"
         type="number"
-        parse={positive}
+        parse={seconds}
         hint="Disconnected after this long without data"
       />
     </>

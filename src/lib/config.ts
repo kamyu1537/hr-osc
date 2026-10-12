@@ -46,6 +46,7 @@ export async function getConfig() {
 }
 
 export async function saveConfig(config: IConfig) {
+  useConfig.getState().setConfig({ ...config });
   await writeTextFile('data/config.json', JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
 
   let newConfig = { ...defaultConfig };

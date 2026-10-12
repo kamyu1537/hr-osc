@@ -18,6 +18,8 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
   useEffect(() => {
     if (!config?.stromno_widget_id) {
       if (socket) socket.close();
+      clearTimeout(timeout);
+      onDisconnect?.();
       onFailure?.('No widget ID set');
       return () => onFailure?.('');
     }
@@ -34,7 +36,11 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
         if (socket) socket.close();
 
         console.info('failed to get websocket url');
-        if (active) onFailure?.('Failed to get WebSocket URL');
+        if (active) {
+          clearTimeout(timeout);
+          onDisconnect?.();
+          onFailure?.('Failed to get WebSocket URL');
+        }
         return;
       }
 
