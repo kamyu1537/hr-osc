@@ -1,6 +1,7 @@
-import { getConfig } from './config';
+import { IConfig } from './config';
 import { Strings } from './i18n';
 import { sendOscBool, sendOscFloat } from './osc';
+import { useConfig } from './states';
 
 export type Failure = keyof Strings['failures'] | '';
 
@@ -12,8 +13,10 @@ export type ServiceProps = {
 
 let timeout: ReturnType<typeof setTimeout> | undefined;
 
-export const connected = async (onConnected?: () => void) => {
-  const config = await getConfig();
+const currentConfig = () => useConfig.getState().config as IConfig;
+
+export const connected = (onConnected?: () => void) => {
+  const config = currentConfig();
 
   console.info('connected');
   onConnected?.();
@@ -21,8 +24,8 @@ export const connected = async (onConnected?: () => void) => {
   sendOscBool(config, config.osc_path_connected, true);
 };
 
-export const disconnected = async (onDisconnect?: () => void) => {
-  const config = await getConfig();
+export const disconnected = (onDisconnect?: () => void) => {
+  const config = currentConfig();
 
   console.info('disconnected');
   onDisconnect?.();
@@ -30,12 +33,9 @@ export const disconnected = async (onDisconnect?: () => void) => {
   sendOscBool(config, config.osc_path_connected, false);
 };
 
-export const getTimeoutSeconds = async () => {
-  const config = await getConfig();
-  return config.connected_timeout * 1000;
-};
+export const getTimeoutSeconds = () => currentConfig().connected_timeout * 1000;
 
-export const sendOscHeartRate = async (heartRate: number) => {
-  const config = await getConfig();
+export const sendOscHeartRate = (heartRate: number) => {
+  const config = currentConfig();
   sendOscFloat(config, config.osc_path_percent, heartRate / config.max_heart_rate);
 };

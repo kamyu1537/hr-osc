@@ -48,25 +48,25 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
 
       socket = new WebSocket(wsUrl);
 
-      const onMessage = async (event: MessageEvent<string>) => {
+      const onMessage = (event: MessageEvent<string>) => {
         if (config == null) return;
         console.info('WS: message', event.data);
         if (timeout != null) {
           clearTimeout(timeout);
         }
 
-        await connected(onConnected);
+        connected(onConnected);
         try {
           const json = JSON.parse(event.data) as HeartRateData;
           onReceiveHeartrate?.(json.data.heartRate);
-          await sendOscHeartRate(json.data.heartRate);
+          sendOscHeartRate(json.data.heartRate);
         } catch (err) {
           console.error(err);
         }
 
         timeout = setTimeout(() => {
           disconnected(onDisconnect);
-        }, await getTimeoutSeconds());
+        }, getTimeoutSeconds());
       };
 
       const onOpen = () => {

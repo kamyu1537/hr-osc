@@ -44,7 +44,7 @@ const HttpService = ({ setConnected, setHeartRate }: ServiceProps) => {
             calc: now - lastUpdate,
           });
 
-          if (now - lastUpdate > (await getTimeoutSeconds())) {
+          if (now - lastUpdate > getTimeoutSeconds()) {
             console.info('timeout', now - lastUpdate);
             disconnected();
             setConnected(false);
