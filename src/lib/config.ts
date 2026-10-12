@@ -42,7 +42,7 @@ async function writeDefaultConfig() {
 }
 
 export async function getConfig() {
-  mkdir('data', { recursive: true, baseDir: BaseDirectory.AppConfig });
+  await mkdir('data', { recursive: true, baseDir: BaseDirectory.AppConfig });
   const isExists = await exists('data/config.json', { baseDir: BaseDirectory.AppConfig });
   if (!isExists) {
     await writeDefaultConfig();
