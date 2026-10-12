@@ -139,16 +139,10 @@ const SourcePanel = () => {
 };
 
 const SourceAction = () => {
-  const t = useStrings();
-  const { label, run, saveFailed } = useSourceAction();
+  const { label, run } = useSourceAction();
 
   return (
     <div className="flex items-center gap-2">
-      {saveFailed && (
-        <span role="alert" className="text-[10px] leading-[13px] text-rose-400">
-          {t.errors.save}
-        </span>
-      )}
       <button className="btn" onClick={run}>
         {label}
       </button>

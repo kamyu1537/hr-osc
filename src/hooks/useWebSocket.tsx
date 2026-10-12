@@ -13,10 +13,11 @@ const RETRY_BASE_MS = 1000;
 const RETRY_MAX_MS = 30000;
 
 const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void, onFailure?: (reason: Failure) => void) => {
-  const config = useConfig((state) => state.config);
+  const widgetId = useConfig((state) => state.config?.stromno_widget_id);
+  const serviceType = useConfig((state) => state.config?.service_type);
+  const reconnectRequest = useConfig((state) => state.reconnectRequest);
 
   useEffect(() => {
-    const widgetId = config?.stromno_widget_id;
     if (!widgetId) {
       onDisconnect?.();
       onFailure?.('noWidgetId');
@@ -109,7 +110,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       disconnected(onDisconnect);
       onFailure?.('');
     };
-  }, [config]);
+  }, [widgetId, serviceType, reconnectRequest]);
 };
 
 export default useWebSocket;
