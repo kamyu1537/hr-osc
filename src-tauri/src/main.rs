@@ -19,7 +19,9 @@ async fn send_float(host: String, port: u16, path: String, value: f32) -> Result
         args: vec![OscType::Float(value)],
     };
 
-    send_osc_message(&host, port, osc_message).await
+    send_osc_message(&host, port, osc_message)
+        .await
+        .inspect_err(|err| log::error!("Error sending OSC message: {err}"))
 }
 
 #[tauri::command]
@@ -29,7 +31,9 @@ async fn send_bool(host: String, port: u16, path: String, value: bool) -> Result
         args: vec![OscType::Bool(value)],
     };
 
-    send_osc_message(&host, port, osc_message).await
+    send_osc_message(&host, port, osc_message)
+        .await
+        .inspect_err(|err| log::error!("Error sending OSC message: {err}"))
 }
 
 #[tauri::command]
