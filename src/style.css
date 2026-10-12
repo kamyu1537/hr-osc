@@ -1,6 +1,35 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-red-400: #f87171;
+  --color-rose-500: #f43f5e;
+  --color-rose-800: #9f1239;
+  --color-lime-500: #84cc16;
+  --color-lime-800: #3f6212;
+  --color-cyan-400: #22d3ee;
+  --color-sky-200: #bae6fd;
+}
+
+@layer base {
+  input::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  option {
+    padding: revert;
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 @font-face {
   font-family: 'Nunito';

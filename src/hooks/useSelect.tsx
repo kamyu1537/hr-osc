@@ -10,7 +10,7 @@ function useSelect(
 
   const component = (
     <select
-      className="select-text block text-gray-400 text-sm w-full outline-none bg-gray-500 bg-opacity-10 active:bg-opacity-20 rounded-sm px-2 py-0.5 mb-2.5"
+      className="select-text block text-gray-400 text-sm w-full outline-hidden bg-gray-500/10 active:bg-gray-500/20 rounded-xs px-2 py-0.5 mb-2.5"
       {...attr}
       value={value + ''}
       onChange={(e) => {

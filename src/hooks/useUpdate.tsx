@@ -60,13 +60,13 @@ const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
         <div className="mt-4 flex flex-row gap-1">
           <button
             onClick={handleClickUpdate}
-            className="hover:bg-opacity-50 bg-opacity-30 bg-lime-800 w-full p-1.5 transition-colors rounded-lg"
+            className="hover:bg-lime-800/50 bg-lime-800/30 w-full p-1.5 transition-colors rounded-lg"
           >
             Download
           </button>
           <button
             onClick={handleClickLater}
-            className="hover:bg-opacity-50 bg-opacity-30 bg-rose-800 py-1.5 px-4 transition-colors rounded-lg"
+            className="hover:bg-rose-800/50 bg-rose-800/30 py-1.5 px-4 transition-colors rounded-lg"
           >
             Later
           </button>

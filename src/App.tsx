@@ -42,7 +42,7 @@ const App = () => {
         <WebSocketService setConnected={setConnected} setHeartRate={setHeartRate} />
       )}
 
-      <main className="h-[calc(100%_-_2em)]">
+      <main className="h-[calc(100%-2em)]">
         <Routes>
           <Route path="/" element={<Home connected={connected} heartRate={heartRate} />} />
           <Route path="/settings" element={<Settings />} />
