@@ -1,6 +1,7 @@
-use axum::body::BoxBody;
+use axum::extract::Request;
 use axum::http::header::CONNECTION;
-use axum::http::{HeaderValue, Request, Response};
+use axum::http::HeaderValue;
+use axum::response::Response;
 use axum::{
     middleware::{self, Next},
     routing::{get, post},
@@ -88,10 +89,10 @@ pub fn start_server(port: u16) {
             .layer(middleware::from_fn(change_connection_header));
 
         let mut print_err = true;
-        let serve = loop {
-            match axum::Server::try_bind(&addr) {
-                Ok(bind) => {
-                    break bind.serve(app.into_make_service());
+        let listener = loop {
+            match tokio::net::TcpListener::bind(addr).await {
+                Ok(listener) => {
+                    break listener;
                 }
                 Err(err) => {
                     if print_err {
@@ -108,7 +109,7 @@ pub fn start_server(port: u16) {
         log::debug!("server binding: {}", addr);
         drop(func_mutex);
 
-        serve
+        axum::serve(listener, app)
             .with_graceful_shutdown(async {
                 *sender_lock = Some(tx);
                 drop(sender_lock);
@@ -125,7 +126,7 @@ pub fn start_server(port: u16) {
     });
 }
 
-async fn change_connection_header<B>(request: Request<B>, next: Next<B>) -> Response<BoxBody> {
+async fn change_connection_header(request: Request, next: Next) -> Response {
     let mut response = next.run(request).await;
     response
         .headers_mut()
