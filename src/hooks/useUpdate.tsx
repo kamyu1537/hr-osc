@@ -12,8 +12,16 @@ const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
     try {
       const version = await getVersion();
 
-      const resp = await fetch('https://api.github.com/repos/kamyu1537/hr-osc/releases/latest');
+      const resp = await fetch('https://api.github.com/repos/kamyu1537/hr-osc/releases/latest', { signal: AbortSignal.timeout(5000) });
+      if (!resp.ok) {
+        console.warn(`update check failed: HTTP ${resp.status}`);
+        return;
+      }
       const release = await resp.json();
+      if (typeof release?.tag_name !== 'string') {
+        console.warn('update check failed: release has no tag_name');
+        return;
+      }
 
       let releaseVersion = release.tag_name;
       if (releaseVersion.split('.').length !== 3) {

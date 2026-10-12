@@ -34,8 +34,8 @@ const App = () => {
       setLoadError({ message: String(err), path: await configFilePath().catch(() => '') });
       return;
     }
-    await checkUpdate();
     setLoaded(true);
+    checkUpdate();
   };
 
   useEffect(() => {
