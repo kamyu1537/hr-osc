@@ -82,6 +82,7 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
   const [token, setToken] = useState('');
   const [failed, setFailed] = useState(false);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [login, setLogin] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const edited = useRef(false);
   const lastSave = useRef<Promise<unknown>>(Promise.resolve());
@@ -98,29 +99,42 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
     );
   }, []);
 
-  const handleChange = (next: string, delay = 500) => {
+  const save = (next: string) => {
+    const saving = lastSave.current.then(() => setPulsoidToken(next.trim()));
+    const settled = saving.catch(() => undefined);
+    lastSave.current = settled;
+    saving.then(
+      () => {
+        requestReconnect();
+        if (lastSave.current === settled) setStatus('saved');
+      },
+      (err) => {
+        console.error(err);
+        if (lastSave.current !== settled) return;
+        setFailed(true);
+        setStatus('idle');
+      },
+    );
+    return saving;
+  };
+
+  const edit = (next: string) => {
     edited.current = true;
     setToken(next);
     setFailed(false);
     setStatus('saving');
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      const save = lastSave.current.then(() => setPulsoidToken(next.trim()));
-      const settled = save.catch(() => undefined);
-      lastSave.current = settled;
-      save.then(
-        () => {
-          requestReconnect();
-          if (lastSave.current === settled) setStatus('saved');
-        },
-        (err) => {
-          console.error(err);
-          if (lastSave.current !== settled) return;
-          setFailed(true);
-          setStatus('idle');
-        },
-      );
-    }, delay);
+  };
+
+  const handleChange = (next: string) => {
+    edit(next);
+    setLogin((key) => key + 1);
+    timer.current = setTimeout(() => save(next), 500);
+  };
+
+  const handleLogin = (next: string) => {
+    edit(next);
+    return save(next);
   };
 
   return (
@@ -161,7 +175,7 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
           )}
         </span>
       </div>
-      <PulsoidLogin onToken={(next) => handleChange(next, 0)} />
+      <PulsoidLogin key={login} onToken={handleLogin} />
     </div>
   );
 };
@@ -172,7 +186,7 @@ type LoginState =
   | { step: 'done' }
   | { step: 'failed'; reason: 'denied' | 'expired' | 'error' };
 
-const PulsoidLogin = ({ onToken }: { onToken: (token: string) => void }) => {
+const PulsoidLogin = ({ onToken }: { onToken: (token: string) => Promise<void> }) => {
   const t = useStrings();
   const [state, setState] = useState<LoginState>({ step: 'idle' });
   const controller = useRef<AbortController>(undefined);
@@ -192,7 +206,8 @@ const PulsoidLogin = ({ onToken }: { onToken: (token: string) => void }) => {
       const result = await pollPulsoidToken(device, current.signal);
       current.signal.throwIfAborted();
       if ('token' in result) {
-        onToken(result.token);
+        await onToken(result.token);
+        current.signal.throwIfAborted();
         setState({ step: 'done' });
       } else {
         setState({ step: 'failed', reason: result.failure });
