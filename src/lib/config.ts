@@ -1,5 +1,5 @@
 import { appConfigDir } from '@tauri-apps/api/path';
-import { BaseDirectory, exists, mkdir, readTextFile, rename, writeTextFile } from '@tauri-apps/plugin-fs';
+import { BaseDirectory, exists, mkdir, readFile, rename, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { LanguageSetting, languageSettings } from './i18n';
 import { useConfig } from './states';
 
@@ -64,9 +64,9 @@ export async function getConfig() {
   }
 
   let config = { ...defaultConfig };
-  const read = await readTextFile('data/config.json', { baseDir: BaseDirectory.AppConfig });
+  const read = await readFile('data/config.json', { baseDir: BaseDirectory.AppConfig });
   try {
-    const parse = JSON.parse(read);
+    const parse = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read));
     config = { ...config, ...parse };
     if (!Object.hasOwn(services, config.service_type)) {
       config.service_type = defaultConfig.service_type;
@@ -76,7 +76,7 @@ export async function getConfig() {
     }
   } catch (err) {
     console.error(err);
-    await writeTextFile('data/config.json.bak', read, { baseDir: BaseDirectory.AppConfig });
+    await writeFile('data/config.json.bak', read, { baseDir: BaseDirectory.AppConfig });
     await writeConfig(defaultConfig);
   }
 
