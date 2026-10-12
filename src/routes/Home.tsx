@@ -32,7 +32,7 @@ const Heartbeat = ({ bpm }: { bpm: number }) => {
     <HeartIcon
       ref={ref}
       style={{ animationDuration: `${ms}ms` }}
-      className="size-8 text-red-400 motion-safe:animate-heartbeat"
+      className="size-8 text-red-400 animate-heartbeat"
     />
   );
 };
