@@ -41,6 +41,7 @@ export const services: Record<IConfig['service_type'], Service> = {
 export const configFilePath = async () => `${await appConfigDir()}\\data\\config.json`;
 
 let writing = Promise.resolve();
+let persisted: IConfig | null = null;
 
 function writeConfig(config: IConfig) {
   const write = writing.then(async () => {
@@ -49,6 +50,7 @@ function writeConfig(config: IConfig) {
       oldPathBaseDir: BaseDirectory.AppConfig,
       newPathBaseDir: BaseDirectory.AppConfig,
     });
+    persisted = config;
   });
   writing = write.catch(() => {});
   return write;
@@ -78,18 +80,18 @@ export async function getConfig() {
     await writeConfig(defaultConfig);
   }
 
+  persisted ??= config;
   return config;
 }
 
 export async function saveConfig(config: IConfig) {
-  const previous = useConfig.getState().config;
   const next = { ...config };
   useConfig.getState().setConfig(next);
   try {
     await writeConfig(next);
   } catch (err) {
-    if (previous && useConfig.getState().config === next) {
-      useConfig.getState().setConfig(previous);
+    if (persisted && useConfig.getState().config === next) {
+      useConfig.getState().setConfig(persisted);
     }
     throw err;
   }
