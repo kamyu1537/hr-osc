@@ -10,14 +10,11 @@ use axum::{
 use once_cell::sync::Lazy;
 use std::net::SocketAddr;
 use std::str::FromStr;
-use std::time::Duration;
-use tokio::sync::{oneshot, Mutex};
+use tokio::sync::Mutex;
+use tokio::task::JoinHandle;
 
 pub struct HttpHeartRateReceiver {
-    tx: Mutex<Option<oneshot::Sender<()>>>,
-
-    func_mutex: Mutex<()>,
-    stop_mutex: Mutex<()>,
+    server: Mutex<Option<JoinHandle<std::io::Result<()>>>>,
 
     heartrate: Mutex<i32>,
     heartrate_update: Mutex<i64>,
@@ -26,9 +23,7 @@ pub struct HttpHeartRateReceiver {
 impl HttpHeartRateReceiver {
     fn new() -> Self {
         Self {
-            tx: Mutex::new(None),
-            func_mutex: Mutex::new(()),
-            stop_mutex: Mutex::new(()),
+            server: Mutex::new(None),
             heartrate: Mutex::new(0),
             heartrate_update: Mutex::new(0),
         }
@@ -61,69 +56,37 @@ impl HttpHeartRateReceiver {
 pub static HTTP_HEARTRATE_RECEIVER: Lazy<HttpHeartRateReceiver> =
     Lazy::new(HttpHeartRateReceiver::new);
 
-pub async fn stop_server() {
-    log::debug!("stop http server");
-
-    if let Some(tx) = HTTP_HEARTRATE_RECEIVER.tx.lock().await.take() {
-        log::debug!("send stop http server");
-        tx.send(()).ok();
-    } else {
-        log::error!("stop http server: tx is None");
+async fn stop(server: &mut Option<JoinHandle<std::io::Result<()>>>) {
+    if let Some(server) = server.take() {
+        server.abort();
+        server.await.ok();
+        log::debug!("server stopped");
     }
 }
 
-pub fn start_server(port: u16) {
-    tokio::spawn(async move {
-        log::debug!("start http server: {}", port);
-        let func_mutex = HTTP_HEARTRATE_RECEIVER.func_mutex.lock().await;
-        stop_server().await;
+pub async fn stop_server() {
+    log::debug!("stop http server");
+    stop(&mut *HTTP_HEARTRATE_RECEIVER.server.lock().await).await;
+}
 
-        let stop_mutex = HTTP_HEARTRATE_RECEIVER.stop_mutex.lock().await;
-        let mut sender_lock = HTTP_HEARTRATE_RECEIVER.tx.lock().await;
-        let (tx, rx) = oneshot::channel::<()>();
+pub async fn start_server(port: u16) -> Result<(), String> {
+    log::debug!("start http server: {}", port);
+    let mut server = HTTP_HEARTRATE_RECEIVER.server.lock().await;
+    stop(&mut server).await;
 
-        let addr = SocketAddr::from(([0, 0, 0, 0], port));
-        let app = Router::new()
-            .route("/", get(root))
-            .route("/", post(post_heartrate))
-            .layer(middleware::from_fn(change_connection_header));
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    let app = Router::new()
+        .route("/", get(root))
+        .route("/", post(post_heartrate))
+        .layer(middleware::from_fn(change_connection_header));
 
-        let mut print_err = true;
-        let listener = loop {
-            match tokio::net::TcpListener::bind(addr).await {
-                Ok(listener) => {
-                    break listener;
-                }
-                Err(err) => {
-                    if print_err {
-                        println!("error binding server: {}", err);
-                        print_err = false;
-                    }
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .map_err(|err| format!("{addr}: {err}"))?;
 
-                    // 500ms 마다 재시도
-                    tokio::time::sleep(Duration::from_millis(500)).await;
-                }
-            }
-        };
-
-        log::debug!("server binding: {}", addr);
-        drop(func_mutex);
-
-        axum::serve(listener, app)
-            .with_graceful_shutdown(async {
-                *sender_lock = Some(tx);
-                drop(sender_lock);
-
-                rx.await.ok();
-
-                log::debug!("receive server graceful shutdown");
-            })
-            .await
-            .expect("server error");
-
-        log::debug!("server stopped");
-        drop(stop_mutex);
-    });
+    log::debug!("server binding: {}", addr);
+    *server = Some(tokio::spawn(async move { axum::serve(listener, app).await }));
+    Ok(())
 }
 
 async fn change_connection_header(request: Request, next: Next) -> Response {
@@ -159,17 +122,46 @@ async fn post_heartrate(payload: String) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Duration;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpStream;
+    use tokio::time::timeout;
 
     #[tokio::test]
-    async fn busy_port_does_not_block_stop() {
+    async fn busy_port_fails_without_blocking_restart() {
         let busy = std::net::TcpListener::bind(("0.0.0.0", 0)).unwrap();
         let port = busy.local_addr().unwrap().port();
 
-        start_server(port);
-        tokio::time::sleep(Duration::from_millis(100)).await;
-
-        tokio::time::timeout(Duration::from_secs(1), stop_server())
+        let err = timeout(Duration::from_secs(1), start_server(port))
+            .await
+            .expect("start_server blocked")
+            .unwrap_err();
+        assert!(err.starts_with(&format!("0.0.0.0:{port}: ")), "{err}");
+        timeout(Duration::from_secs(1), stop_server())
             .await
             .expect("stop_server blocked");
+
+        drop(busy);
+        timeout(Duration::from_secs(1), start_server(port))
+            .await
+            .expect("start_server blocked")
+            .unwrap();
+
+        let mut client = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+        client
+            .write_all(b"POST / HTTP/1.1\r\nhost: localhost\r\ncontent-length: 2\r\n\r\n60")
+            .await
+            .unwrap();
+        let mut response = String::new();
+        client.read_to_string(&mut response).await.unwrap();
+        assert!(response.ends_with("\r\n\r\nok"), "{response}");
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 60);
+
+        let _idle = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        timeout(Duration::from_secs(1), stop_server())
+            .await
+            .expect("stop_server blocked");
+        std::net::TcpListener::bind(("0.0.0.0", port)).unwrap();
     }
 }
