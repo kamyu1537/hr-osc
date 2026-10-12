@@ -38,7 +38,10 @@ export const disconnected = (onDisconnect?: () => void) => {
 
 export const getTimeoutSeconds = () => currentConfig().connected_timeout * 1000;
 
+export const heartRatePercent = (heartRate: number, maxHeartRate: number) =>
+  maxHeartRate > 0 ? Math.min(1, Math.max(0, heartRate / maxHeartRate)) : 0;
+
 export const sendOscHeartRate = (heartRate: number) => {
   const config = currentConfig();
-  sendOscFloat(config, config.osc_path_percent, heartRate / config.max_heart_rate);
+  sendOscFloat(config, config.osc_path_percent, heartRatePercent(heartRate, config.max_heart_rate));
 };

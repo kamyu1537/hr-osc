@@ -5,7 +5,7 @@ import useSourceAction from '../hooks/useSourceAction';
 import { IConfig, services } from '../lib/config';
 import { useStrings } from '../lib/i18n';
 import { getAddr } from '../lib/osc';
-import { Failure } from '../lib/service';
+import { Failure, heartRatePercent } from '../lib/service';
 import { cn } from '../lib/utils';
 
 type HomeProps = {
@@ -42,7 +42,7 @@ const Heartbeat = ({ bpm }: { bpm: number }) => {
 const Home = ({ config, connected, heartRate, failure }: HomeProps) => {
   const t = useStrings();
   const recovery = useSourceAction();
-  const percent = config.max_heart_rate > 0 ? Math.min(1, Math.max(0, heartRate / config.max_heart_rate)) : 0;
+  const percent = heartRatePercent(heartRate, config.max_heart_rate);
 
   return (
     <div className="h-full flex flex-col items-center">
