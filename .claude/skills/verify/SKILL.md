@@ -19,7 +19,7 @@ A verification instance never shares state with the owner's own hr-osc or anothe
 | OSC target (`osc_client_port`) | 9000 | 19000 |
 | WebView2 CDP port | none | 9334 |
 
-Before launching, confirm these ports are free. If one is taken, another run owns it; pick other free ports and use them everywhere below (`CDP_PORT` sets the CDP port for `cdp.mjs`).
+Run one verification at a time: the config dir above is shared by every verification instance. Before launching, confirm these ports are free. If one is taken, another verification run is active; wait for it to finish. Do not pick other ports.
 
 ```bash
 netstat -ano | grep -E ':(1421|18080|19000|9334) ' | grep -E 'LISTENING|^ *UDP'
@@ -59,6 +59,13 @@ netstat -ano | grep -E ':(1421|18080|19000|9334) ' | grep -E 'LISTENING|^ *UDP'
 
    ```bash
    until curl -s -m 1 http://127.0.0.1:18080/ | grep -q 'hr-osc http server' && curl -s -m 1 http://127.0.0.1:9334/json/version >/dev/null; do sleep 1; done
+   ```
+
+5. Record the processes this run started, for Cleanup. The ports were free before launch, so their listeners are yours. PowerShell, with `$OUT` set to the evidence directory:
+
+   ```powershell
+   $pids = @(Get-NetTCPConnection -State Listen -LocalPort 18080,1421 | ForEach-Object OwningProcess) + @(Get-NetUDPEndpoint -LocalPort 19000 | ForEach-Object OwningProcess)
+   $pids | Sort-Object -Unique | Set-Content "$OUT\pids.txt"
    ```
 
 ## Doctor
@@ -106,16 +113,15 @@ Drive the real path: UI controls through `cdp.mjs`, heart rate through `POST /`.
 
 ## Cleanup
 
-Stop only what this run started, by its checkout path or its port. PowerShell:
+Stop only the processes recorded in `$OUT\pids.txt`, with their children. Never match by executable path: the owner's `pnpm tauri dev` from the same checkout runs from the same `target\` directory. PowerShell:
 
 ```powershell
-$root = (git rev-parse --show-toplevel) -replace '/', '\'
-Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -like "$root\target\*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
-Get-NetUDPEndpoint -LocalPort 19000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+Get-Content "$OUT\pids.txt" | ForEach-Object { taskkill /PID $_ /T /F }
 Get-NetTCPConnection -State Listen -LocalPort 1421,18080,9334 -ErrorAction SilentlyContinue
+Get-NetUDPEndpoint -LocalPort 19000 -ErrorAction SilentlyContinue
 ```
 
-Stopping the app ends `pnpm tauri dev` and its Vite server; the last command prints nothing when every port is free. Keep `OUT`. Delete `%APPDATA%\me.kamyu.hr-osc.verify` only when the next run needs a fresh config.
+The last two commands print nothing when every port is free. Keep `OUT`. Delete `%APPDATA%\me.kamyu.hr-osc.verify` only when the next run needs a fresh config.
 
 ## Gotchas
 
