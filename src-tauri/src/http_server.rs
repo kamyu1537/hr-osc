@@ -10,11 +10,13 @@ use axum::{
 use once_cell::sync::Lazy;
 use std::net::SocketAddr;
 use std::str::FromStr;
+use std::sync::atomic::{AtomicU64, Ordering};
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
 pub struct HttpHeartRateReceiver {
     server: Mutex<Option<JoinHandle<std::io::Result<()>>>>,
+    generation: AtomicU64,
 
     heartrate: Mutex<i32>,
     heartrate_update: Mutex<i64>,
@@ -24,6 +26,7 @@ impl HttpHeartRateReceiver {
     fn new() -> Self {
         Self {
             server: Mutex::new(None),
+            generation: AtomicU64::new(0),
             heartrate: Mutex::new(0),
             heartrate_update: Mutex::new(0),
         }
@@ -57,6 +60,7 @@ pub static HTTP_HEARTRATE_RECEIVER: Lazy<HttpHeartRateReceiver> =
     Lazy::new(HttpHeartRateReceiver::new);
 
 async fn stop(server: &mut Option<JoinHandle<std::io::Result<()>>>) {
+    HTTP_HEARTRATE_RECEIVER.generation.fetch_add(1, Ordering::SeqCst);
     if let Some(server) = server.take() {
         server.abort();
         server.await.ok();
@@ -74,10 +78,11 @@ pub async fn start_server(port: u16) -> Result<(), String> {
     let mut server = HTTP_HEARTRATE_RECEIVER.server.lock().await;
     stop(&mut server).await;
 
+    let generation = HTTP_HEARTRATE_RECEIVER.generation.load(Ordering::SeqCst);
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let app = Router::new()
         .route("/", get(root))
-        .route("/", post(post_heartrate))
+        .route("/", post(move |payload| post_heartrate(generation, payload)))
         .layer(middleware::from_fn(change_connection_header));
 
     let listener = tokio::net::TcpListener::bind(addr)
@@ -101,12 +106,15 @@ async fn root() -> &'static str {
     "hr-osc http server"
 }
 
-async fn post_heartrate(payload: String) -> &'static str {
+async fn post_heartrate(generation: u64, payload: String) -> &'static str {
     log::debug!("post_heartrate {}", payload);
 
     match i32::from_str(&payload) {
         Ok(heartrate) => {
             log::debug!("heartrate {}", heartrate);
+            if HTTP_HEARTRATE_RECEIVER.generation.load(Ordering::SeqCst) != generation {
+                return "server stopped";
+            }
             HTTP_HEARTRATE_RECEIVER.set_heartrate(heartrate).await;
             HTTP_HEARTRATE_RECEIVER.set_heartrate_update().await;
             "ok"
@@ -157,11 +165,31 @@ mod tests {
         assert!(response.ends_with("\r\n\r\nok"), "{response}");
         assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 60);
 
-        let _idle = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+        let mut stale = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+        stale
+            .write_all(b"POST / HTTP/1.1\r\nhost: localhost\r\ncontent-length: 2\r\n\r\n7")
+            .await
+            .unwrap();
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let next_port = std::net::TcpListener::bind(("0.0.0.0", 0))
+            .unwrap()
+            .local_addr()
+            .unwrap()
+            .port();
+        timeout(Duration::from_secs(1), start_server(next_port))
+            .await
+            .expect("start_server blocked")
+            .unwrap();
+        std::net::TcpListener::bind(("0.0.0.0", port)).unwrap();
+        stale.write_all(b"0").await.unwrap();
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 60);
+
+        let _idle = TcpStream::connect(("127.0.0.1", next_port)).await.unwrap();
         tokio::time::sleep(Duration::from_millis(100)).await;
         timeout(Duration::from_secs(1), stop_server())
             .await
             .expect("stop_server blocked");
-        std::net::TcpListener::bind(("0.0.0.0", port)).unwrap();
+        std::net::TcpListener::bind(("0.0.0.0", next_port)).unwrap();
     }
 }
