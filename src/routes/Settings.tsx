@@ -46,7 +46,7 @@ const SourcePanel = () => {
   return (
     <>
       <div>
-        <label htmlFor="service_type" className="block text-[11px] leading-[14px] text-neutral-400">
+        <label htmlFor="service_type" className="mb-0.5 block text-[11px] leading-[14px] text-neutral-300">
           Source
         </label>
         <select
@@ -150,7 +150,7 @@ const Settings = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <ul className="mb-0.5 flex gap-3 text-xs">
+      <ul className="mb-2 flex gap-3 border-b border-neutral-900 pb-1.5 text-xs">
         {panels.map((panel) => (
           <li key={panel.id}>
             <button
@@ -167,7 +167,7 @@ const Settings = () => {
         ))}
       </ul>
 
-      <section aria-labelledby={`${id}-heading`} className="min-h-0 grow overflow-y-auto flex flex-col gap-1">
+      <section aria-labelledby={`${id}-heading`} className="min-h-0 grow overflow-y-auto flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <h2 id={`${id}-heading`} className="text-[13px]">
             {title}

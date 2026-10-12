@@ -26,12 +26,16 @@ const About = () => {
   };
 
   return (
-    <div className="h-full text-center">
-      <img src={appIcon} alt="" className="inline-block size-10" draggable={false} />
-      <h1 className="text-[22px]">hr-osc</h1>
-      <p className="text-xs text-neutral-400">{version}</p>
+    <div className="h-full flex flex-col items-center justify-center">
+      <div className="flex items-center gap-3">
+        <img src={appIcon} alt="" className="w-12" draggable={false} />
+        <div>
+          <h1 className="text-[22px] leading-tight">hr-osc</h1>
+          <p className="text-xs text-neutral-400">{version}</p>
+        </div>
+      </div>
 
-      <p className="mt-2.5 text-xs text-neutral-200">
+      <p className="mt-3 text-xs text-neutral-200">
         <button className="link" onClick={handleOpenGithub}>
           GitHub
         </button>
