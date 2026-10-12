@@ -31,8 +31,14 @@
     color: var(--color-neutral-500);
   }
 
+  select {
+    color-scheme: dark;
+  }
+
   option {
     padding: revert;
+    background-color: var(--color-neutral-900);
+    color: var(--color-neutral-200);
   }
 
   button:not(:disabled),
@@ -53,6 +59,10 @@
 
   .input {
     @apply block w-full border-0 border-b border-neutral-700 bg-transparent px-0 py-0.5 text-[13px] text-neutral-200 select-text;
+  }
+
+  select.input {
+    background-color: var(--color-neutral-950);
   }
 
   .input:focus-visible {
