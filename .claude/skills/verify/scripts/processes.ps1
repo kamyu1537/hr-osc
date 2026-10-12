@@ -1,7 +1,6 @@
 param(
     [Parameter(Mandatory)][ValidateSet('record', 'stop')][string]$Mode,
-    [Parameter(Mandatory)][string]$File,
-    [int[]]$ProcessIds
+    [Parameter(Mandatory)][string]$File
 )
 
 Add-Type -TypeDefinition @'
@@ -154,7 +153,8 @@ function Stop-Tree([IntPtr]$Handle, [int]$ProcessId, [long]$Created) {
 }
 
 if ($Mode -eq 'record') {
-    $ProcessIds | Sort-Object -Unique | ForEach-Object {
+    $listeners = @(Get-NetTCPConnection -State Listen -LocalPort 18080, 1421 | ForEach-Object OwningProcess) + @(Get-NetUDPEndpoint -LocalPort 19000 | ForEach-Object OwningProcess)
+    $listeners | Sort-Object -Unique | ForEach-Object {
         $handle = [VerifyProcess]::Open($_)
         if ($handle -eq [IntPtr]::Zero) { throw "cannot open process $_" }
         try { "$_ $([VerifyProcess]::CreationTime($handle))" }

@@ -61,11 +61,10 @@ netstat -ano | grep -E ':(1421|18080|19000|9334) ' | grep -E 'LISTENING|^ *UDP'
    until curl -s -m 1 http://127.0.0.1:18080/ | grep -q 'hr-osc http server' && curl -s -m 1 http://127.0.0.1:9334/json/version >/dev/null; do sleep 1; done
    ```
 
-5. Record the processes this run started, with their start times, for Cleanup. The ports were free before launch, so their listeners are yours. PowerShell, with `$OUT` set to the evidence directory:
+5. Record the processes listening on 18080, 1421 and 19000, with their start times, for Cleanup. The ports were free before launch, so their listeners are yours. `$OUT` is the evidence directory:
 
-   ```powershell
-   $pids = @(Get-NetTCPConnection -State Listen -LocalPort 18080,1421 | ForEach-Object OwningProcess) + @(Get-NetUDPEndpoint -LocalPort 19000 | ForEach-Object OwningProcess)
-   & .claude/skills/verify/scripts/processes.ps1 record "$OUT\pids.txt" -ProcessIds $pids
+   ```bash
+   pwsh -NoProfile -File $S/processes.ps1 record "$OUT/pids.txt"
    ```
 
 ## Doctor
@@ -116,7 +115,7 @@ Drive the real path: UI controls through `cdp.mjs`, heart rate through `POST /`.
 Stop only the processes recorded in `$OUT\pids.txt`, with their children. Windows reuses the PID of an exited process, so `processes.ps1 stop` opens each process, checks its start time against the record, suspends it and every descendant it finds so none can spawn more, and terminates them through those handles; children count only when the handle shows them started by that process after it. Never use `taskkill` or match by executable path: the owner's `pnpm tauri dev` from the same checkout runs from the same `target\` directory. PowerShell:
 
 ```powershell
-& .claude/skills/verify/scripts/processes.ps1 stop "$OUT\pids.txt"
+pwsh -NoProfile -File .claude/skills/verify/scripts/processes.ps1 stop "$OUT\pids.txt"
 Get-NetTCPConnection -State Listen -LocalPort 1421,18080,9334 -ErrorAction SilentlyContinue
 Get-NetUDPEndpoint -LocalPort 19000 -ErrorAction SilentlyContinue
 ```
