@@ -47,11 +47,12 @@ export async function getConfig() {
 
 export async function saveConfig(config: IConfig) {
   const previous = useConfig.getState().config;
-  useConfig.getState().setConfig({ ...config });
+  const next = { ...config };
+  useConfig.getState().setConfig(next);
   try {
-    await writeTextFile('data/config.json', JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
+    await writeTextFile('data/config.json', JSON.stringify(next, null, 2), { baseDir: BaseDirectory.AppConfig });
   } catch (err) {
-    if (previous) {
+    if (previous && useConfig.getState().config === next) {
       useConfig.getState().setConfig(previous);
     }
     throw err;
