@@ -47,6 +47,22 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       scheduleRetry();
     };
 
+    const dropSocket = () => {
+      if (!socket) return;
+      socket.removeEventListener('open', onOpen);
+      socket.removeEventListener('error', onError);
+      socket.removeEventListener('message', onMessage);
+      socket.removeEventListener('close', onClose);
+      socket.close();
+      socket = null;
+    };
+
+    const onSilent = () => {
+      dropSocket();
+      markDisconnected();
+      scheduleRetry();
+    };
+
     const onMessage = (event: MessageEvent<string>) => {
       console.info('WS: message', event.data);
       attempt = 0;
@@ -61,7 +77,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
         console.error(err);
       }
 
-      disconnectTimer = setTimeout(markDisconnected, getTimeoutSeconds());
+      disconnectTimer = setTimeout(onSilent, getTimeoutSeconds());
     };
 
     const onOpen = () => {
