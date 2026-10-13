@@ -2,7 +2,7 @@
 name = "hr-osc-tauri"
 version = "0.3.2"
 description = "Heartrate program for OSC"
-authors = ["Byeon seongun"]
+authors = ["Byeon Seongun"]
 license = "MIT"
 repository = ""
 edition = "2021"
