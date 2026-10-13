@@ -23,3 +23,7 @@ Heartrate OSC for VRChat
 ```bash
 curl -X POST -d '60' http://localhost:8080
 ```
+
+## License
+
+[MIT](LICENSE)
