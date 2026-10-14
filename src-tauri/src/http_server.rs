@@ -65,9 +65,15 @@ pub static HTTP_HEARTRATE_RECEIVER: Lazy<HttpHeartRateReceiver> =
     Lazy::new(HttpHeartRateReceiver::new);
 
 async fn stop(server: &mut Option<JoinHandle<std::io::Result<()>>>) {
-    HTTP_HEARTRATE_RECEIVER
-        .generation
-        .fetch_add(1, Ordering::SeqCst);
+    {
+        let mut heartrate = HTTP_HEARTRATE_RECEIVER.heartrate.lock().await;
+        let mut update = HTTP_HEARTRATE_RECEIVER.heartrate_update.lock().await;
+        HTTP_HEARTRATE_RECEIVER
+            .generation
+            .fetch_add(1, Ordering::SeqCst);
+        *heartrate = 0;
+        *update = 0;
+    }
     if let Some(server) = server.take() {
         server.abort();
         server.await.ok();
@@ -246,6 +252,10 @@ mod tests {
             assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, heartrate);
         }
         assert!(HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await > 0);
+
+        let response = post(local_port, "72").await;
+        assert!(response.ends_with("\r\n\r\nok"), "{response}");
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 72);
 
         let busy = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
         let busy_port = busy.local_addr().unwrap().port();
