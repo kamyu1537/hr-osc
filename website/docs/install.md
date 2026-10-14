@@ -7,10 +7,14 @@ sidebar_position: 1
 
 ## 설치
 
-1. [릴리스 페이지](https://github.com/kamyu1537/hr-osc/releases/latest)에서 `hr-osc.exe`를 받습니다.
+먼저 [릴리스 페이지](https://github.com/kamyu1537/hr-osc/releases)에서 Windows용 `hr-osc.exe`가 공개되어 있는지 확인합니다. 공개된 릴리스나 실행 파일이 없으면 이 방법으로 설치할 수 없습니다.
+
+실행 파일이 공개되어 있으면 다음 순서로 설치합니다.
+
+1. 릴리스의 **Assets**에서 `hr-osc.exe`를 받습니다.
 2. 받은 파일을 원하는 폴더에 두고 실행합니다. 별도 설치 과정은 없습니다.
 
-릴리스에는 Windows용 실행 파일이 올라옵니다. 설정 파일은 앱을 처음 실행할 때 자동으로 만들어집니다.
+설정 파일은 앱을 처음 실행할 때 자동으로 만들어집니다.
 
 ## 처음 설정하기
 
