@@ -52,30 +52,34 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
     };
 
     const onSilent = () => {
+      if (cancelled) return;
       dropSocket();
       markDisconnected();
       scheduleRetry();
     };
 
     const onMessage = (event: MessageEvent<string>) => {
+      if (cancelled) return;
       console.info('WS: message', event.data);
-      attempt = 0;
-      clearTimeout(disconnectTimer);
-
-      connected(onConnected);
       try {
         const heartRate = source.heartRate(event.data);
+        if (!Number.isFinite(heartRate)) return;
+
+        attempt = 0;
+        clearTimeout(disconnectTimer);
+        connected(onConnected);
         onReceiveHeartrate?.(heartRate);
         sendOscHeartRate(heartRate);
+        disconnectTimer = setTimeout(onSilent, getTimeoutSeconds());
       } catch (err) {
         console.error(err);
       }
-
-      disconnectTimer = setTimeout(onSilent, getTimeoutSeconds());
     };
 
     const onOpen = () => {
+      if (cancelled) return;
       console.info('WS: open');
+      disconnectTimer = setTimeout(onSilent, getTimeoutSeconds());
     };
 
     const onError = () => {
@@ -119,6 +123,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       socket.addEventListener('close', onClose);
     };
 
+    markDisconnected();
     connect();
 
     return () => {
@@ -126,7 +131,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       cancelled = true;
       clearTimeout(retryTimer);
       clearTimeout(disconnectTimer);
-      socket?.close();
+      dropSocket();
       disconnected(onDisconnect);
       onFailure?.('');
     };
