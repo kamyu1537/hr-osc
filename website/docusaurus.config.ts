@@ -22,10 +22,9 @@ const config: Config = {
 
   i18n: {
     defaultLocale: 'ko',
-    locales: ['ko', 'en'],
+    locales: ['ko'],
     localeConfigs: {
       ko: { label: '한국어', htmlLang: 'ko-KR' },
-      en: { label: 'English', htmlLang: 'en-US' },
     },
   },
 
