@@ -8,7 +8,7 @@ import WebSocketService from './components/WebSocketService';
 import useUpdate from './hooks/useUpdate';
 import { configFilePath, getConfig, services } from './lib/config';
 import { useLanguage } from './lib/i18n';
-import { Failure } from './lib/service';
+import { disconnected, Failure } from './lib/service';
 import { useConfig } from './lib/states';
 import About from './routes/About';
 import Home from './routes/Home';
@@ -45,6 +45,10 @@ const App = () => {
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
+
+  useEffect(() => {
+    if (config && !connected) disconnected();
+  }, [connected, config?.osc_client_host, config?.osc_client_port, config?.osc_path_connected]);
 
   if (loadError) {
     return <ConfigError {...loadError} onRetry={load} />;

@@ -14,16 +14,25 @@ export type ServiceProps = {
 };
 
 let timeout: ReturnType<typeof setTimeout> | undefined;
-let lastConnected: boolean | undefined;
+let lastConnected: { host: string; port: number; path: string; value: boolean } | undefined;
 
 const currentConfig = () => useConfig.getState().config as IConfig;
 
 const sendConnected = (value: boolean) => {
-  if (!value && lastConnected === false) return;
-
-  lastConnected = value;
   const config = currentConfig();
-  sendOscBool(config, config.osc_path_connected, value);
+  const { osc_client_host: host, osc_client_port: port, osc_path_connected: path } = config;
+  if (
+    !value &&
+    lastConnected?.value === false &&
+    lastConnected.host === host &&
+    lastConnected.port === port &&
+    lastConnected.path === path
+  ) {
+    return;
+  }
+
+  lastConnected = { host, port, path, value };
+  sendOscBool(config, path, value);
 };
 
 export const connected = (onConnected?: () => void) => {
