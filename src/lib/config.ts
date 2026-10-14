@@ -78,7 +78,17 @@ export async function getConfig() {
   let config = { ...defaultConfig };
   const read = await readFile('data/config.json', { baseDir: BaseDirectory.AppConfig });
   try {
-    const parse = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read));
+    const parse: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read));
+    if (typeof parse !== 'object' || parse === null || Array.isArray(parse)) {
+      throw new Error('invalid config object');
+    }
+    for (const [key, defaultValue] of Object.entries(defaultConfig)) {
+      if (!Object.hasOwn(parse, key)) continue;
+      const value: unknown = Reflect.get(parse, key);
+      if (typeof value !== typeof defaultValue || (typeof value === 'number' && !Number.isFinite(value))) {
+        throw new Error(`invalid config field: ${key}`);
+      }
+    }
     config = { ...config, http_server_lan: true, ...parse };
     if (!Object.hasOwn(services, config.service_type)) {
       config.service_type = defaultConfig.service_type;
