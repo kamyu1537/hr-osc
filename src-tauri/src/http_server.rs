@@ -152,7 +152,7 @@ mod tests {
     use tokio::time::timeout;
 
     #[tokio::test]
-    async fn busy_port_fails_without_blocking_restart() {
+    async fn receiver_restarts_reset_samples_and_reject_stale_posts() {
         let busy = std::net::TcpListener::bind(("0.0.0.0", 0)).unwrap();
         let port = busy.local_addr().unwrap().port();
 
@@ -175,6 +175,7 @@ mod tests {
         assert!(response.starts_with("HTTP/1.1 200 "), "{response}");
         assert!(response.ends_with("\r\n\r\nok"), "{response}");
         assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 60);
+        assert!(HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await > 0);
 
         for body in ["", "abc", "60.5", "99999999999999999999"] {
             let response = post(port, body).await;
@@ -206,7 +207,13 @@ mod tests {
         let mut response = String::new();
         stale.read_to_string(&mut response).await.unwrap();
         assert!(response.ends_with("\r\n\r\nserver stopped"), "{response}");
-        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 60);
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 0);
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await, 0);
+
+        let response = post(next_port, "72").await;
+        assert!(response.ends_with("\r\n\r\nok"), "{response}");
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 72);
+        assert!(HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await > 0);
 
         let _idle = TcpStream::connect(("127.0.0.1", next_port)).await.unwrap();
         tokio::time::sleep(Duration::from_millis(100)).await;
@@ -214,6 +221,8 @@ mod tests {
             .await
             .expect("stop_server blocked");
         std::net::TcpListener::bind(("0.0.0.0", next_port)).unwrap();
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 0);
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await, 0);
 
         let busy = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
         let local_port = busy.local_addr().unwrap().port();
@@ -236,6 +245,18 @@ mod tests {
             assert!(response.ends_with("\r\n\r\nok"), "{body}: {response}");
             assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, heartrate);
         }
+        assert!(HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await > 0);
+
+        let busy = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let busy_port = busy.local_addr().unwrap().port();
+        timeout(Duration::from_secs(1), start_server(busy_port, false))
+            .await
+            .expect("start_server blocked")
+            .unwrap_err();
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 0);
+        assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate_update().await, 0);
+        std::net::TcpListener::bind(("127.0.0.1", local_port)).unwrap();
+
         timeout(Duration::from_secs(1), stop_server())
             .await
             .expect("stop_server blocked");
