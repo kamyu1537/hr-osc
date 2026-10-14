@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { getHttpHeartRate, getHttpHeartRateUpdateTime, startHttpServer } from '../lib/http_server';
 import { connected, disconnected, getTimeoutSeconds, sendOscHeartRate, ServiceProps } from '../lib/service';
 import { useConfig } from '../lib/states';
@@ -6,34 +6,25 @@ import { useConfig } from '../lib/states';
 const HttpService = ({ setConnected, setHeartRate, setFailure }: ServiceProps) => {
   const config = useConfig((state) => state.config);
   const reconnectRequest = useConfig((state) => state.reconnectRequest);
-  const [serverPort, setServerPort] = useState(config?.http_server_port || 0);
 
   useEffect(() => {
     if (config == null) return;
 
-    const port = config.http_server_port || 0;
-    if (serverPort === port) return;
-
-    setServerPort(port);
-  }, [config]);
-
-  useEffect(() => {
-    if (config == null) return;
-
-    let interval: ReturnType<typeof setInterval>;
-    let start = false;
+    let interval: ReturnType<typeof setInterval> | undefined;
     let cancelled = false;
-    if (serverPort !== 0) {
-      start = true;
-      startHttpServer(config).catch(() => {
-        if (!cancelled) setFailure('httpPort');
-      });
+    disconnected();
+    setConnected(false);
+    setFailure('');
 
-      interval = setInterval(() => {
-        (async () => {
+    if (config.http_server_port !== 0) {
+      startHttpServer(config).then(() => {
+        if (cancelled) return;
+
+        interval = setInterval(async () => {
           const [heartRate, lastUpdate] = await Promise.all([getHttpHeartRate(), getHttpHeartRateUpdateTime()]);
+          if (cancelled) return;
 
-          if (heartRate == null || lastUpdate == null) {
+          if (heartRate == null || lastUpdate == null || lastUpdate === 0) {
             disconnected();
             setConnected(false);
             return;
@@ -50,18 +41,18 @@ const HttpService = ({ setConnected, setHeartRate, setFailure }: ServiceProps) =
           setConnected(true);
           setHeartRate(heartRate);
           sendOscHeartRate(heartRate);
-        })();
-      }, 1000);
+        }, 1000);
+      }, () => {
+        if (!cancelled) setFailure('httpPort');
+      });
     }
 
     return () => {
       cancelled = true;
       setFailure('');
-      if (start) {
-        clearInterval(interval);
-      }
+      clearInterval(interval);
     };
-  }, [serverPort, config?.http_server_lan, reconnectRequest]);
+  }, [config?.http_server_port, config?.http_server_lan, reconnectRequest]);
 
   return <></>;
 };
