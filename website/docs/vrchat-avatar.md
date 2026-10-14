@@ -40,13 +40,16 @@ VRChat에서 OSC를 켜야 앱이 보낸 값을 받습니다. Action Menu의 Opt
 
 ## OSC 설정 초기화
 
-아바타를 바꾸거나 파라미터를 고친 뒤에도 값이 들어오지 않으면 VRChat이 저장해 둔 OSC 설정이 오래된 것일 수 있습니다. 아래 방법 중 하나로 초기화합니다.
+파라미터를 고친 뒤에도 값이 들어오지 않으면 해당 아바타의 OSC 설정을 초기화합니다. 직접 편집한 주소와 타입은 자동으로 복구되지 않으므로 원본 파일을 보관하세요.
 
-- VRChat의 Action Menu → Options → OSC → `Reset Config`를 누릅니다.
-- VRChat을 종료한 뒤 아래 폴더를 삭제합니다. 다음 실행 때 다시 만들어집니다.
+1. VRChat을 종료합니다.
+2. 아래 경로에서 사용 중인 계정의 `userId` 폴더와 문제가 있는 아바타의 `avatarId.json` 파일을 찾습니다. 파일 안의 `id`와 `name`으로 아바타를 확인합니다.
 
-```text
-%USERPROFILE%\AppData\LocalLow\VRChat\VRChat\OSC
-```
+   ```text
+   %USERPROFILE%\AppData\LocalLow\VRChat\VRChat\OSC\{userId}\Avatars\{avatarId}.json
+   ```
 
-초기화한 뒤에는 아바타를 다시 불러와야 파라미터가 새로 등록됩니다.
+3. 해당 JSON 파일만 `OSC` 폴더 밖의 백업 폴더로 옮깁니다. 다른 아바타의 파일과 `OSC` 폴더는 그대로 둡니다.
+4. VRChat을 실행하고 OSC를 켠 상태로 해당 아바타를 다시 불러옵니다. 파일이 없으면 VRChat이 기본 매핑을 새로 만듭니다.
+
+기존 사용자 매핑이 필요하면 백업과 새 파일을 비교해 필요한 주소와 타입을 다시 적용하세요. 파일 구조는 [VRChat 공식 OSC 문서](https://docs.vrchat.com/docs/osc-avatar-parameters)를 참고하세요.
