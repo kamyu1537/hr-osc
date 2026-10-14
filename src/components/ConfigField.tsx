@@ -1,5 +1,5 @@
 import { CheckIcon } from '@heroicons/react/16/solid';
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { defaultConfig, IConfig, saveConfig } from '../lib/config';
 import { Strings, useStrings } from '../lib/i18n';
 import { useConfig } from '../lib/states';
@@ -7,6 +7,11 @@ import { useConfig } from '../lib/states';
 type FieldKey = Exclude<keyof IConfig, 'service_type' | 'language'>;
 
 type ErrorKey = keyof Strings['errors'];
+
+type FieldState =
+  | { status: 'idle' | 'saved' | 'failed' }
+  | { status: 'saving'; raw: string }
+  | { status: 'invalid'; raw: string; error: ErrorKey };
 
 export type Parse<T> = (raw: string) => { value: T } | { error: ErrorKey };
 
@@ -21,40 +26,47 @@ type ConfigFieldProps<K extends FieldKey> = {
 };
 
 const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hint, prefix, failure }: ConfigFieldProps<K>) => {
-  const [raw, setRaw] = useState(() => {
-    const stored = String(useConfig.getState().config?.[name] ?? '');
-    return prefix && stored.startsWith(prefix) ? stored.slice(prefix.length) : stored;
-  });
+  const stored = String(useConfig((state) => state.config?.[name] ?? ''));
+  const [field, setField] = useState<FieldState>({ status: 'idle' });
   const t = useStrings();
-  const [error, setError] = useState<ErrorKey | ''>('');
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const revision = useRef(0);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   const handleChange = (next: string) => {
-    setRaw(next);
+    const currentRevision = ++revision.current;
     clearTimeout(timer.current);
 
     const result = parse(next);
     if ('error' in result) {
-      setError(result.error);
-      setStatus('idle');
+      setField({ status: 'invalid', raw: next, error: result.error });
       return;
     }
 
-    setError('');
-    setStatus('saving');
+    setField({ status: 'saving', raw: next });
     timer.current = setTimeout(async () => {
       try {
         await saveConfig({ ...(useConfig.getState().config ?? defaultConfig), [name]: prefix ? prefix + result.value : result.value });
-        setStatus('saved');
+        if (mounted.current && revision.current === currentRevision) {
+          setField({ status: 'saved' });
+        }
       } catch (err) {
         console.error(err);
-        setError('save');
-        setStatus('idle');
+        if (mounted.current && revision.current === currentRevision) {
+          setField({ status: 'failed' });
+        }
       }
     }, 500);
   };
 
+  const storedRaw = prefix && stored.startsWith(prefix) ? stored.slice(prefix.length) : stored;
+  const raw = 'raw' in field ? field.raw : storedRaw;
+  const error = field.status === 'invalid' ? field.error : field.status === 'failed' ? 'save' : '';
   const shownError = error || failure;
   const errorId = `${name}-error`;
   const hintId = `${name}-hint`;
@@ -73,7 +85,7 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
         aria-describedby={[shownError && errorId, hint && hintId].filter(Boolean).join(' ') || undefined}
         onChange={(e) => handleChange(e.target.value)}
       />
-      {(shownError || hint || status !== 'idle') && (
+      {(shownError || hint || field.status === 'saving' || field.status === 'saved') && (
         <div className="col-start-2 mt-1 flex min-w-0 items-start">
           <div className="min-w-0">
             {shownError && (
@@ -88,8 +100,8 @@ const ConfigField = <K extends FieldKey>({ name, label, parse, type = 'text', hi
             )}
           </div>
           <span aria-live="polite" className="ml-auto shrink-0 text-[10px] leading-[13px] text-neutral-400">
-            {!error && status === 'saving' && <span className="pl-2">{t.settings.saving}</span>}
-            {!error && status === 'saved' && (
+            {field.status === 'saving' && <span className="pl-2">{t.settings.saving}</span>}
+            {field.status === 'saved' && (
               <span className="inline-flex items-center gap-0.5 pl-2">
                 <CheckIcon className="size-3" aria-hidden="true" />
                 {t.settings.saved}
