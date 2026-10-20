@@ -42,6 +42,13 @@ const required: Parse<string> = (raw) => (raw.trim() ? { value: raw.trim() } : {
 
 const OSC_PREFIX = '/avatar/parameters/';
 
+const parameterName: Parse<string> = (raw) => {
+  const trimmed = raw.trim();
+  const name = trimmed.startsWith(OSC_PREFIX) ? trimmed.slice(OSC_PREFIX.length) : trimmed;
+  if (!name) return { error: 'required' };
+  return name.startsWith('/') ? { error: 'parameterName' } : { value: name };
+};
+
 const optional: Parse<string> = (raw) => ({ value: raw.trim() });
 
 const latestConfig = () => useConfig.getState().config ?? defaultConfig;
@@ -404,14 +411,14 @@ const ParametersPanel = () => {
         name="osc_path_connected"
         label={t.settings.connectedParameter}
         prefix={OSC_PREFIX}
-        parse={required}
+        parse={parameterName}
         hint={t.settings.defaultValue(defaultConfig.osc_path_connected.slice(OSC_PREFIX.length))}
       />
       <ConfigField
         name="osc_path_percent"
         label={t.settings.percentParameter}
         prefix={OSC_PREFIX}
-        parse={required}
+        parse={parameterName}
         hint={t.settings.defaultValue(defaultConfig.osc_path_percent.slice(OSC_PREFIX.length))}
       />
       <ConfigField
