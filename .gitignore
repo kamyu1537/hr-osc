@@ -23,3 +23,13 @@ target
 *.njsproj
 *.sln
 *.sw?
+
+# Local agent setup
+/.claude/
+/docs/
+/.scratch/
+/GLOSSARY.md
+/GLOSSARY-MAP.md
+/CLAUDE.local.md
+/CLAUDE.md
+/AGENTS.md
