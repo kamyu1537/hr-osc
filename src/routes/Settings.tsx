@@ -6,14 +6,9 @@ import { defaultConfig, IConfig, saveConfig, services } from '../lib/config';
 import { stopHttpServer } from '../lib/http_server';
 import { Language, LanguageSetting, Strings, useStrings } from '../lib/i18n';
 import { getAddr } from '../lib/osc';
-import {
-  getPulsoidToken,
-  pollPulsoidToken,
-  PulsoidDeviceCode,
-  requestPulsoidDeviceCode,
-  setPulsoidToken,
-} from '../lib/pulsoid';
+import { getPulsoidToken, setPulsoidToken } from '../lib/pulsoid';
 import { useConfig } from '../lib/states';
+import usePulsoidLogin from '../hooks/usePulsoidLogin';
 import useSourceAction from '../hooks/useSourceAction';
 import { cn } from '../lib/utils';
 
@@ -89,7 +84,8 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
   const [token, setToken] = useState('');
   const [failed, setFailed] = useState(false);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [login, setLogin] = useState(0);
+  const login = usePulsoidLogin((state) => state.state);
+  const cancelLogin = usePulsoidLogin((state) => state.cancel);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const edited = useRef(false);
   const lastSave = useRef<Promise<unknown>>(Promise.resolve());
@@ -105,6 +101,10 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
       },
     );
   }, []);
+
+  useEffect(() => {
+    if (login.step === 'done') setToken(login.token);
+  }, [login]);
 
   const save = (next: string) => {
     const saving = lastSave.current.then(() => setPulsoidToken(next.trim()));
@@ -122,26 +122,16 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
         setStatus('idle');
       },
     );
-    return saving;
   };
 
-  const edit = (next: string) => {
+  const handleChange = (next: string) => {
     edited.current = true;
     setToken(next);
     setFailed(false);
     setStatus('saving');
     clearTimeout(timer.current);
-  };
-
-  const handleChange = (next: string) => {
-    edit(next);
-    setLogin((key) => key + 1);
+    cancelLogin();
     timer.current = setTimeout(() => save(next), 500);
-  };
-
-  const handleLogin = (next: string) => {
-    edit(next);
-    return save(next);
   };
 
   return (
@@ -182,54 +172,16 @@ const TokenField = ({ tokenUrl }: { tokenUrl: string }) => {
           )}
         </span>
       </div>
-      <PulsoidLogin key={login} onToken={handleLogin} />
+      <PulsoidLogin />
     </div>
   );
 };
 
-type LoginState =
-  | { step: 'idle' }
-  | { step: 'waiting'; device?: PulsoidDeviceCode }
-  | { step: 'done' }
-  | { step: 'failed'; reason: 'denied' | 'expired' | 'error' };
-
-const PulsoidLogin = ({ onToken }: { onToken: (token: string) => Promise<void> }) => {
+const PulsoidLogin = () => {
   const t = useStrings();
-  const [state, setState] = useState<LoginState>({ step: 'idle' });
-  const controller = useRef<AbortController>(undefined);
-
-  useEffect(() => () => controller.current?.abort(), []);
-
-  const start = async () => {
-    controller.current?.abort();
-    const current = new AbortController();
-    controller.current = current;
-    setState({ step: 'waiting' });
-    try {
-      const device = await requestPulsoidDeviceCode();
-      current.signal.throwIfAborted();
-      setState({ step: 'waiting', device });
-      openUrl(device.verificationUriComplete).catch(console.error);
-      const result = await pollPulsoidToken(device, current.signal);
-      current.signal.throwIfAborted();
-      if ('token' in result) {
-        await onToken(result.token);
-        current.signal.throwIfAborted();
-        setState({ step: 'done' });
-      } else {
-        setState({ step: 'failed', reason: result.failure });
-      }
-    } catch (err) {
-      if (current.signal.aborted) return;
-      console.error(err);
-      setState({ step: 'failed', reason: 'error' });
-    }
-  };
-
-  const cancel = () => {
-    controller.current?.abort();
-    setState({ step: 'idle' });
-  };
+  const state = usePulsoidLogin((login) => login.state);
+  const start = usePulsoidLogin((login) => login.start);
+  const cancel = usePulsoidLogin((login) => login.cancel);
 
   const device = state.step === 'waiting' ? state.device : undefined;
 
