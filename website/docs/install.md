@@ -14,7 +14,7 @@ sidebar_position: 1
 
 ## 처음 설정하기
 
-1. [심박 소스](./heart-rate-source.md)를 고르고 위젯 ID를 입력하거나 HTTP로 심박수를 보냅니다.
+1. [심박수 소스](./heart-rate-source.md)를 고르고 위젯 ID를 입력하거나 HTTP로 심박수를 보냅니다.
 2. VRChat에서 OSC를 켜고 [아바타에 파라미터를 추가](./vrchat-avatar.md)합니다.
 3. 홈 화면의 상태가 `연결됨`으로 바뀌고 심박수가 표시되는지 확인합니다.
 

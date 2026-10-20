@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# 심박 소스
+# 심박수 소스
 
 설정 화면의 `소스` 탭에서 심박수를 받을 방법을 고릅니다. 선택지는 `Pulsoid`, `Pulsoid (Legacy)`, `Stromno`, `HTTP` 네 가지입니다. 기본값은 `Stromno`입니다.
 
