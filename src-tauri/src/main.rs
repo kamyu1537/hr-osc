@@ -85,8 +85,7 @@ async fn set_pulsoid_token(token: String) -> Result<(), String> {
         .inspect_err(|err| log::error!("Error saving Pulsoid token: {err}"))
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
