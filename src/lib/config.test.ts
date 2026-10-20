@@ -79,7 +79,6 @@ describe('getConfig', () => {
 
     expect(await configModule.getConfig()).toEqual({
       ...configModule.defaultConfig,
-      http_server_lan: true,
       osc_client_host: 'localhost',
       future_field: { enabled: true },
     });
@@ -87,9 +86,9 @@ describe('getConfig', () => {
   });
 
   it('retains an explicit LAN setting', async () => {
-    files.set('data/config.json', new TextEncoder().encode('{"http_server_lan":false}'));
+    files.set('data/config.json', new TextEncoder().encode('{"http_server_lan":true}'));
 
-    expect((await configModule.getConfig()).http_server_lan).toBe(false);
+    expect((await configModule.getConfig()).http_server_lan).toBe(true);
   });
 
   it('uses LAN-disabled defaults for a new installation', async () => {
@@ -101,7 +100,7 @@ describe('getConfig', () => {
   it('falls back for unknown service and language strings', async () => {
     files.set('data/config.json', new TextEncoder().encode('{"service_type":"future-source","language":"future-language"}'));
 
-    expect(await configModule.getConfig()).toEqual({ ...configModule.defaultConfig, http_server_lan: true });
+    expect(await configModule.getConfig()).toEqual(configModule.defaultConfig);
     expect(files.has('data/config.json.bak')).toBe(false);
   });
 

@@ -89,7 +89,7 @@ export async function getConfig() {
         throw new Error(`invalid config field: ${key}`);
       }
     }
-    config = { ...config, http_server_lan: true, ...parse };
+    config = { ...config, ...parse };
     if (!Object.hasOwn(services, config.service_type)) {
       config.service_type = defaultConfig.service_type;
     }
