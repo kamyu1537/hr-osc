@@ -1,6 +1,6 @@
 import { useConfig } from './states';
 
-export const languageSettings = ['auto', 'ko', 'en', 'ja'] as const;
+export const languageSettings = ['auto', 'ko', 'en', 'ja', 'zh-CN', 'zh-TW'] as const;
 export type LanguageSetting = (typeof languageSettings)[number];
 export type Language = Exclude<LanguageSetting, 'auto'>;
 
@@ -219,11 +219,154 @@ const ja: Strings = {
   about: { support: '開発者を支援する' },
 };
 
-const strings: Record<Language, Strings> = { en, ko, ja };
+const zhCN: Strings = {
+  nav: { home: '主页', settings: '设置', about: '关于' },
+  loading: '加载中...',
+  configError: { title: '无法读取设置', file: '设置文件', retry: '重试' },
+  update: {
+    available: (version: string) => `新版本 ${version} 已发布`,
+    download: '下载',
+    dismiss: '关闭更新通知',
+  },
+  home: {
+    connected: '已连接',
+    disconnected: '未连接',
+    restartServer: '重启服务器',
+    reconnect: '重新连接',
+    oscFailed: 'OSC 发送失败',
+  },
+  failures: {
+    noWidgetId: '未设置小组件 ID',
+    noWebSocketUrl: '无法获取 WebSocket URL',
+    noPulsoidToken: '未设置 Pulsoid 令牌',
+    pulsoidToken: 'Pulsoid 令牌被拒绝，请获取新令牌',
+    httpPort: (port: number) => `无法打开 HTTP 端口 ${port}`,
+  },
+  settings: {
+    tabs: { source: '来源', osc: 'OSC', parameters: '参数', general: '常规' },
+    titles: { source: '心率来源', osc: 'OSC 输出', parameters: '参数', general: '常规' },
+    source: '来源',
+    httpPort: 'HTTP 服务器端口',
+    httpHint: (url: string) => `以文本形式将 bpm POST 到 ${url}`,
+    httpLan: '从局域网接收',
+    httpLanHint: '同一网络中的其他设备发送时开启',
+    widgetId: '小组件 ID',
+    widgetHint: (host: string) => `在 ${host} 查看小组件 ID`,
+    token: '访问令牌',
+    tokenHint: (host: string) => `在 ${host} 获取令牌`,
+    login: {
+      start: '使用 Pulsoid 登录',
+      waiting: '请在浏览器中允许访问',
+      reopen: '重新打开',
+      cancel: '取消',
+      success: '已登录 Pulsoid',
+      denied: '访问被拒绝',
+      expired: '登录已超时，请重试',
+      error: '无法登录，请重试',
+    },
+    timeout: '连接超时（秒）',
+    timeoutHint: '超过此时间没有数据即视为未连接',
+    host: '主机',
+    port: '端口',
+    defaultValue: (value: string | number) => `默认值：${value}`,
+    connectedParameter: '连接参数',
+    percentParameter: '百分比参数',
+    maxHeartRate: '最大心率',
+    maxHeartRateHint: '百分比 = bpm / 最大心率',
+    language: '语言',
+    auto: '自动',
+    saving: '保存中...',
+    saved: '已保存',
+  },
+  errors: {
+    port: '请输入 1 到 65535 之间的端口',
+    positive: '请输入大于 0 的数字',
+    seconds: '请输入不小于 1 的整数（秒）',
+    required: '必填项',
+    parameterName: '只输入名称，开头不要加 /',
+    save: '无法保存',
+    oscHost: '无法发送到此主机',
+  },
+  about: { support: '赞助开发者' },
+};
+
+const zhTW: Strings = {
+  nav: { home: '首頁', settings: '設定', about: '關於' },
+  loading: '載入中...',
+  configError: { title: '無法讀取設定', file: '設定檔', retry: '重試' },
+  update: {
+    available: (version: string) => `新版本 ${version} 已發布`,
+    download: '下載',
+    dismiss: '關閉更新通知',
+  },
+  home: {
+    connected: '已連線',
+    disconnected: '未連線',
+    restartServer: '重新啟動伺服器',
+    reconnect: '重新連線',
+    oscFailed: 'OSC 傳送失敗',
+  },
+  failures: {
+    noWidgetId: '未設定小工具 ID',
+    noWebSocketUrl: '無法取得 WebSocket URL',
+    noPulsoidToken: '未設定 Pulsoid 權杖',
+    pulsoidToken: 'Pulsoid 權杖遭拒，請取得新權杖',
+    httpPort: (port: number) => `無法開啟 HTTP 連接埠 ${port}`,
+  },
+  settings: {
+    tabs: { source: '來源', osc: 'OSC', parameters: '參數', general: '一般' },
+    titles: { source: '心率來源', osc: 'OSC 輸出', parameters: '參數', general: '一般' },
+    source: '來源',
+    httpPort: 'HTTP 伺服器連接埠',
+    httpHint: (url: string) => `以文字形式將 bpm POST 至 ${url}`,
+    httpLan: '從區域網路接收',
+    httpLanHint: '同一網路的其他裝置傳送時開啟',
+    widgetId: '小工具 ID',
+    widgetHint: (host: string) => `在 ${host} 查看小工具 ID`,
+    token: '存取權杖',
+    tokenHint: (host: string) => `在 ${host} 取得權杖`,
+    login: {
+      start: '使用 Pulsoid 登入',
+      waiting: '請在瀏覽器中允許存取',
+      reopen: '重新開啟',
+      cancel: '取消',
+      success: '已登入 Pulsoid',
+      denied: '存取遭拒',
+      expired: '登入逾時，請重試',
+      error: '無法登入，請重試',
+    },
+    timeout: '連線逾時（秒）',
+    timeoutHint: '超過此時間沒有資料即視為未連線',
+    host: '主機',
+    port: '連接埠',
+    defaultValue: (value: string | number) => `預設值：${value}`,
+    connectedParameter: '連線參數',
+    percentParameter: '百分比參數',
+    maxHeartRate: '最大心率',
+    maxHeartRateHint: '百分比 = bpm / 最大心率',
+    language: '語言',
+    auto: '自動',
+    saving: '儲存中...',
+    saved: '已儲存',
+  },
+  errors: {
+    port: '請輸入 1 到 65535 之間的連接埠',
+    positive: '請輸入大於 0 的數字',
+    seconds: '請輸入不小於 1 的整數（秒）',
+    required: '必填',
+    parameterName: '只輸入名稱，開頭不要加 /',
+    save: '無法儲存',
+    oscHost: '無法傳送到此主機',
+  },
+  about: { support: '贊助開發者' },
+};
+
+const strings: Record<Language, Strings> = { en, ko, ja, 'zh-CN': zhCN, 'zh-TW': zhTW };
 
 const osLanguage = (): Language => {
-  const tag = navigator.language.toLowerCase().split('-')[0];
-  return tag === 'ko' ? 'ko' : tag === 'ja' ? 'ja' : 'en';
+  const locale = new Intl.Locale(navigator.language).maximize();
+  if (locale.language === 'zh') return locale.script === 'Hant' ? 'zh-TW' : 'zh-CN';
+  return locale.language === 'ko' ? 'ko' : locale.language === 'ja' ? 'ja' : 'en';
 };
 
 const resolveLanguage = (setting: LanguageSetting): Language => (setting === 'auto' ? osLanguage() : setting);

@@ -384,7 +384,13 @@ const ParametersPanel = () => {
   );
 };
 
-const languageLabels: Record<Language, string> = { ko: '한국어', en: 'English', ja: '日本語' };
+const languageLabels: Record<Language, string> = {
+  ko: '한국어',
+  en: 'English',
+  ja: '日本語',
+  'zh-CN': '简体中文',
+  'zh-TW': '繁體中文',
+};
 
 const GeneralPanel = () => {
   const t = useStrings();
