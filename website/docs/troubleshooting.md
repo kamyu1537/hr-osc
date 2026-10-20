@@ -23,6 +23,8 @@ netstat -ano | findstr :8080
 
 홈 화면 오른쪽 위가 `연결 안 됨`이면 심박수가 들어오지 않는 것입니다. 소스에 따라 확인할 곳이 다릅니다.
 
+![HTTP 소스에서 연결 안 됨 상태인 홈 화면](/img/screens/home-disconnected.png)
+
 ### Pulsoid
 
 - `Pulsoid 토큰이 설정되지 않음`: 저장된 토큰이 없습니다. `Pulsoid로 로그인`을 누르거나 `액세스 토큰`을 입력하세요. 방법은 [Pulsoid](./heart-rate-source.md#pulsoid)를 보세요.

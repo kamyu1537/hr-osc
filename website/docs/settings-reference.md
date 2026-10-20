@@ -24,6 +24,8 @@ sidebar_position: 4
 
 VRChat으로 OSC를 보낼 주소입니다.
 
+![OSC 탭](/img/screens/settings-osc.png)
+
 | 항목 | 기본값 | 설명 |
 | --- | --- | --- |
 | 호스트 | `127.0.0.1` | OSC를 받는 호스트. 비워 둘 수 없습니다. |
@@ -33,15 +35,19 @@ VRChat으로 OSC를 보낼 주소입니다.
 
 ## 파라미터
 
+![파라미터 탭](/img/screens/settings-parameters.png)
+
 | 항목 | 기본값 | 설명 |
 | --- | --- | --- |
 | 연결 파라미터 | `hr_connected` | 연결 여부(Bool)를 보낼 파라미터 이름. 비워 둘 수 없습니다. |
 | 퍼센트 파라미터 | `hr_percent` | 심박수 비율(Float)을 보낼 파라미터 이름. 비워 둘 수 없습니다. |
 | 최대 심박수 | `200` | `hr_percent = 심박수 ÷ 최대 심박수`의 기준값. 0보다 큰 숫자. |
 
-이름 앞에는 `/avatar/parameters/`가 고정으로 붙습니다. 칸에는 그 뒤의 이름만 입력합니다. 아바타 쪽 설정은 [VRChat 아바타 설정](./vrchat-avatar.md)을 보세요.
+이름 앞에는 `/avatar/parameters/`가 고정으로 붙습니다. 칸에는 그 뒤의 이름만 입력합니다. `/avatar/parameters/hr_connected`처럼 전체 경로를 붙여넣으면 앞부분을 떼고 `hr_connected`로 저장합니다. `HR/connected`처럼 이름 중간에는 `/`를 넣을 수 있지만, `/`로 시작하는 이름은 저장되지 않습니다. 아바타 쪽 설정은 [VRChat 아바타 설정](./vrchat-avatar.md)을 보세요.
 
 ## 일반
+
+![일반 탭](/img/screens/settings-general.png)
 
 | 항목 | 기본값 | 설명 |
 | --- | --- | --- |
