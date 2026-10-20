@@ -1774,6 +1774,8 @@ name = "hr-osc-tauri"
 version = "0.3.2"
 dependencies = [
  "axum",
+ "hyper",
+ "hyper-util",
  "keyring",
  "log",
  "once_cell",

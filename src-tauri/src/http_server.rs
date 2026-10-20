@@ -2,20 +2,28 @@ use axum::extract::Request;
 use axum::http::header::CONNECTION;
 use axum::http::{HeaderValue, StatusCode};
 use axum::response::Response;
+use axum::serve::Listener;
 use axum::{
     middleware::{self, Next},
     routing::{get, post},
     Router,
 };
+use hyper::server::conn::http1;
+use hyper_util::rt::TokioIo;
+use hyper_util::service::TowerToHyperService;
 use once_cell::sync::Lazy;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
+use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
+const CONNECTION_TIMEOUT: Duration = Duration::from_secs(5);
+
 pub struct HttpHeartRateReceiver {
-    server: Mutex<Option<JoinHandle<std::io::Result<()>>>>,
+    server: Mutex<Option<JoinHandle<()>>>,
     generation: AtomicU64,
 
     heartrate: Mutex<i32>,
@@ -64,7 +72,7 @@ impl HttpHeartRateReceiver {
 pub static HTTP_HEARTRATE_RECEIVER: Lazy<HttpHeartRateReceiver> =
     Lazy::new(HttpHeartRateReceiver::new);
 
-async fn stop(server: &mut Option<JoinHandle<std::io::Result<()>>>) {
+async fn stop(server: &mut Option<JoinHandle<()>>) {
     {
         let mut heartrate = HTTP_HEARTRATE_RECEIVER.heartrate.lock().await;
         let mut update = HTTP_HEARTRATE_RECEIVER.heartrate_update.lock().await;
@@ -102,15 +110,22 @@ pub async fn start_server(port: u16, lan: bool) -> Result<(), String> {
         )
         .layer(middleware::from_fn(change_connection_header));
 
-    let listener = tokio::net::TcpListener::bind(addr)
+    let listener = TcpListener::bind(addr)
         .await
         .map_err(|err| format!("{addr}: {err}"))?;
 
     log::debug!("server binding: {}", addr);
-    *server = Some(tokio::spawn(
-        async move { axum::serve(listener, app).await },
-    ));
+    *server = Some(tokio::spawn(serve(listener, app)));
     Ok(())
+}
+
+async fn serve(mut listener: TcpListener, app: Router) {
+    loop {
+        let (stream, _) = Listener::accept(&mut listener).await;
+        let connection = http1::Builder::new()
+            .serve_connection(TokioIo::new(stream), TowerToHyperService::new(app.clone()));
+        tokio::spawn(tokio::time::timeout(CONNECTION_TIMEOUT, connection));
+    }
 }
 
 async fn change_connection_header(request: Request, next: Next) -> Response {
@@ -152,7 +167,6 @@ async fn post_heartrate(generation: u64, payload: String) -> (StatusCode, &'stat
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Duration;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpStream;
     use tokio::time::timeout;
@@ -256,6 +270,17 @@ mod tests {
         let response = post(local_port, "72").await;
         assert!(response.ends_with("\r\n\r\nok"), "{response}");
         assert_eq!(HTTP_HEARTRATE_RECEIVER.get_heartrate().await, 72);
+
+        let mut idle = TcpStream::connect(("127.0.0.1", local_port)).await.unwrap();
+        let mut partial = TcpStream::connect(("127.0.0.1", local_port)).await.unwrap();
+        partial.write_all(b"POST / HTTP/1.1\r\n").await.unwrap();
+        for stream in [&mut idle, &mut partial] {
+            let mut rest = Vec::new();
+            timeout(CONNECTION_TIMEOUT * 2, stream.read_to_end(&mut rest))
+                .await
+                .expect("connection outlived its timeout")
+                .unwrap();
+        }
 
         let busy = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
         let busy_port = busy.local_addr().unwrap().port();
