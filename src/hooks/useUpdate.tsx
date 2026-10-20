@@ -28,10 +28,8 @@ const useUpdate = (): [string, () => Promise<void>, React.ReactNode] => {
         releaseVersion = releaseVersion + '.0';
       }
       if (semver.gt(releaseVersion, version)) {
-        console.info('found new version!');
         setUpdate(releaseVersion);
       } else {
-        console.info('latest version!');
         setUpdate('');
       }
     } catch (e) {

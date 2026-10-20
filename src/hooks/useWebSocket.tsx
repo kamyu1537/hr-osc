@@ -7,7 +7,7 @@ import { getWidgetEndpoint, widgetHeartRate } from '../lib/stromno';
 const RETRY_BASE_MS = 1000;
 const RETRY_MAX_MS = 30000;
 
-const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnected?: () => void, onDisconnect?: () => void, onFailure?: (reason: Failure) => void) => {
+const useWebSocket = (onReceiveHeartrate: (heartRate: number) => void, onConnected: () => void, onDisconnect: () => void, onFailure: (reason: Failure) => void) => {
   const widgetId = useConfig((state) => state.config?.stromno_widget_id);
   const serviceType = useConfig((state) => state.config?.service_type);
   const reconnectRequest = useConfig((state) => state.reconnectRequest);
@@ -37,7 +37,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
 
     const fail = (failure: Exclude<Failure, ''>, retry: boolean) => {
       markDisconnected();
-      onFailure?.(failure);
+      onFailure(failure);
       if (retry) scheduleRetry();
     };
 
@@ -60,7 +60,6 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
 
     const onMessage = (event: MessageEvent<string>) => {
       if (cancelled) return;
-      console.info('WS: message', event.data);
       try {
         const heartRate = source.heartRate(event.data);
         if (!Number.isFinite(heartRate)) return;
@@ -68,7 +67,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
         attempt = 0;
         clearTimeout(disconnectTimer);
         connected(onConnected);
-        onReceiveHeartrate?.(heartRate);
+        onReceiveHeartrate(heartRate);
         sendOscHeartRate(heartRate);
         disconnectTimer = setTimeout(onSilent, getTimeoutSeconds());
       } catch (err) {
@@ -78,7 +77,6 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
 
     const onOpen = () => {
       if (cancelled) return;
-      console.info('WS: open');
       disconnectTimer = setTimeout(onSilent, getTimeoutSeconds());
     };
 
@@ -87,7 +85,6 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
     };
 
     const onClose = () => {
-      console.info('WS: closed');
       socket = null;
       if (cancelled) return;
       markDisconnected();
@@ -95,8 +92,6 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
     };
 
     const connect = async () => {
-      console.info('connecting to websocket');
-
       const endpoint = await source.getEndpoint().catch((err): Endpoint => {
         console.error(err);
         return { failure: 'noWebSocketUrl', retry: true };
@@ -104,7 +99,6 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
       if (cancelled) return;
 
       if ('failure' in endpoint) {
-        console.info('failed to get websocket url');
         fail(endpoint.failure, endpoint.retry);
         return;
       }
@@ -116,7 +110,7 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
         fail('noWebSocketUrl', true);
         return;
       }
-      onFailure?.('');
+      onFailure('');
       socket.addEventListener('open', onOpen);
       socket.addEventListener('error', onError);
       socket.addEventListener('message', onMessage);
@@ -127,13 +121,12 @@ const useWebSocket = (onReceiveHeartrate?: (heartRate: number) => void, onConnec
     connect();
 
     return () => {
-      console.info('unmount');
       cancelled = true;
       clearTimeout(retryTimer);
       clearTimeout(disconnectTimer);
       dropSocket();
       disconnected(onDisconnect);
-      onFailure?.('');
+      onFailure('');
     };
   }, [widgetId, serviceType, reconnectRequest]);
 };

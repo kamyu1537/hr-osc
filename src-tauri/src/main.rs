@@ -7,7 +7,7 @@ use http_server::HTTP_HEARTRATE_RECEIVER;
 use rosc::{OscMessage, OscType};
 use tauri_plugin_log::{Target, TargetKind};
 
-pub use osc::*;
+use osc::send_osc_message;
 
 mod http_server;
 mod osc;

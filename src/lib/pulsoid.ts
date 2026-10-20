@@ -42,7 +42,7 @@ export type PulsoidDeviceCode = {
   interval: number;
 };
 
-export type PulsoidLogin = { token: string } | { failure: 'denied' | 'expired' };
+type PulsoidLogin = { token: string } | { failure: 'denied' | 'expired' };
 
 export const requestPulsoidDeviceCode = async (): Promise<PulsoidDeviceCode> => {
   const response = await fetch('https://pulsoid.net/oauth2/device_authorization', {

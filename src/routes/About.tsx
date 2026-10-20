@@ -10,9 +10,7 @@ const About = () => {
   const [version, setVersion] = useState('');
 
   useEffect(() => {
-    (async () => {
-      setVersion(await getVersion());
-    })();
+    getVersion().then(setVersion);
   }, []);
 
   const handleOpenGithub = () => {

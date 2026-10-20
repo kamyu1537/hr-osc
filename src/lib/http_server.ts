@@ -7,12 +7,8 @@ export const startHttpServer = (config: IConfig) => {
 
 export const stopHttpServer = () => {
   invoke('stop_http_server');
-}
-
-export const getHttpHeartRate = async () => {
-  return (await invoke('get_http_heartrate')) as number;
 };
 
-export const getHttpHeartRateUpdateTime = async () => {
-  return (await invoke('get_http_update_time')) as number;
-};
+export const getHttpHeartRate = () => invoke<number>('get_http_heartrate');
+
+export const getHttpHeartRateUpdateTime = () => invoke<number>('get_http_update_time');

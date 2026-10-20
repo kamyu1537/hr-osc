@@ -24,14 +24,7 @@ const HttpService = ({ setConnected, setHeartRate, setFailure }: ServiceProps) =
           const [heartRate, lastUpdate] = await Promise.all([getHttpHeartRate(), getHttpHeartRateUpdateTime()]);
           if (cancelled) return;
 
-          if (heartRate == null || lastUpdate == null || lastUpdate === 0) {
-            disconnected();
-            setConnected(false);
-            return;
-          }
-
-          const now = Date.now();
-          if (now - lastUpdate > getTimeoutSeconds()) {
+          if (heartRate == null || lastUpdate == null || lastUpdate === 0 || Date.now() - lastUpdate > getTimeoutSeconds()) {
             disconnected();
             setConnected(false);
             return;
