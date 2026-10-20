@@ -1,6 +1,6 @@
 [package]
 name = "hr-osc-tauri"
-version = "0.3.2"
+version = "0.4.0"
 description = "Heartrate program for OSC"
 authors = ["Byeon Seongun"]
 license = "MIT"
