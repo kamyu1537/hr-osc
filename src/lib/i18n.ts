@@ -49,7 +49,7 @@ const en = {
       expired: 'Login timed out. Try again',
       error: "Couldn't log in. Try again",
     },
-    timeout: 'Connected timeout (seconds)',
+    timeout: 'Connection timeout (seconds)',
     timeoutHint: 'Disconnected after this long without data',
     host: 'Host',
     port: 'Port',
